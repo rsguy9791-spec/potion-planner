@@ -1,0 +1,38 @@
+{
+  "name": "pots",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "jest --config jest.config.cjs"
+  },
+  "dependencies": {
+    "@mdi/font": "^7.4.47",
+    "vue": "^3.5.30",
+    "vuetify": "^3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.29.0",
+    "@babel/preset-env": "^7.29.2",
+    "@babel/preset-typescript": "^7.28.5",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/user-event": "^14.6.1",
+    "@testing-library/vue": "^8.1.0",
+    "@types/jest": "^29",
+    "@types/node": "^24.12.0",
+    "@vitejs/plugin-vue": "^6.0.5",
+    "@vue/tsconfig": "^0.9.0",
+    "@vue/vue3-jest": "^29.2.6",
+    "babel-jest": "^29",
+    "jest": "^29",
+    "jest-environment-jsdom": "^29",
+    "ts-jest": "^29",
+    "typescript": "~5.9.3",
+    "vite": "^8.0.1",
+    "vite-plugin-vuetify": "^2.1.3",
+    "vue-tsc": "^3.2.5"
+  }
+}
