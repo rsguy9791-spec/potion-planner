@@ -4,6 +4,7 @@ import vuetify from 'vite-plugin-vuetify'
 import { fileURLToPath, URL } from 'node:url'
 
 export default defineConfig({
+  base: '/potion-planner/',
   plugins: [
     vue(),
     vuetify({ autoImport: true }),
