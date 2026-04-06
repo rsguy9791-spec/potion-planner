@@ -17,7 +17,7 @@
       <!-- ── Recipes ──────────────────────────────────────────────────────── -->
       <v-list-subheader>Recipes</v-list-subheader>
 
-      <template v-for="cat in keys(CATEGORY_LABELS)" :key="cat">
+      <template v-for="cat in categoryKeys" :key="cat">
         <template v-if="recipesByCat[cat]?.length">
           <v-list-subheader class="text-caption text-medium-emphasis pl-4">
             {{ CATEGORY_LABELS[cat] }}
@@ -78,12 +78,12 @@ import type { SecondaryMode } from '@/types'
 import { RECIPES, RECIPE_GROUPS, INGREDIENT_MAP } from '@/data/recipes'
 import { useCalculator } from '@/composables/useCalculator'
 import { CATEGORY_LABELS } from '@/data/constants'
-import { keys } from 'vuetify/lib/util/helpers.mjs'
-
 defineProps<{ modelValue: boolean }>()
 const emit = defineEmits<{ 'update:modelValue': [value: boolean] }>()
 
 const { inputs, toggleRecipe, setPreferredTier, setSecondaryMode } = useCalculator()
+
+const categoryKeys = Object.keys(CATEGORY_LABELS) as (keyof typeof CATEGORY_LABELS)[]
 
 
 interface RecipeEntry {

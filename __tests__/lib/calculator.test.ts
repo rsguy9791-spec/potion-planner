@@ -463,3 +463,155 @@ describe('1000 Elder overloads — with scroll of cleansing', () => {
   test('primal_extract: 950',     () => expect(qty(result, 'primal_extract')).toBe(950))
   test('crystal_flask: 1000',     () => expect(qty(result, 'crystal_flask')).toBe(1000))
 })
+
+// ─── Disabled recipes ─────────────────────────────────────────────────────────
+
+describe('Disabled recipes', () => {
+  test('disabled recipe appears as a purchase, not its ingredients', () => {
+    const inputs: CalculatorInputs = {
+      ...emptyInputs(96),
+      disabledRecipes: new Set(['super_attack']),
+    }
+    const result = calc(inputs, 'overload', 1)
+    // super_attack should now be a required purchase
+    expect(result.ingredients.find(i => i.id === 'super_attack')?.totalNeeded).toBe(1)
+    // its ingredients should NOT be calculated
+    expect(result.ingredients.find(i => i.id === 'clean_irit')).toBeUndefined()
+    expect(result.ingredients.find(i => i.id === 'eye_of_newt')).toBeUndefined()
+    // other ingredients in the chain are unaffected
+    expect(result.ingredients.find(i => i.id === 'clean_avantoe')?.totalNeeded).toBe(1)
+  })
+
+  test('disabled recipe with existing supply: remainder becomes purchase', () => {
+    const inputs: CalculatorInputs = {
+      ...emptyInputs(96),
+      disabledRecipes: new Set(['super_attack']),
+      potionSupply: new Map([['super_attack', { threeDose: 1, fourDose: 0, sixDose: 0 }]]),
+    }
+    const result = calc(inputs, 'overload', 3)
+    // 3 super_attack needed total, 1 covered by supply, 2 to purchase
+    const sa = result.ingredients.find(i => i.id === 'super_attack')
+    expect(sa?.totalNeeded).toBe(3)
+    expect(sa?.currentlyHave).toBe(1)
+    expect(sa?.stillNeeded).toBe(2)
+  })
+})
+
+// ─── Secondary modes ──────────────────────────────────────────────────────────
+
+describe('Secondary mode: skip', () => {
+  test('skip mode on a secondary causes the whole recipe to be purchased', () => {
+    const inputs: CalculatorInputs = {
+      ...emptyInputs(96),
+      secondaryModes: new Map([['eye_of_newt', 'skip']]),
+    }
+    const result = calc(inputs, 'overload', 1)
+    // super_attack cannot be crafted (eye_of_newt is skipped), so it's a purchase
+    expect(result.ingredients.find(i => i.id === 'super_attack')?.totalNeeded).toBe(1)
+    expect(result.ingredients.find(i => i.id === 'clean_irit')).toBeUndefined()
+    expect(result.ingredients.find(i => i.id === 'eye_of_newt')).toBeUndefined()
+  })
+})
+
+describe('Secondary mode: use_available', () => {
+  test('use_available caps crafts to supply, remainder becomes purchase', () => {
+    const inputs: CalculatorInputs = {
+      ...emptyInputs(96),
+      secondaryModes: new Map([['eye_of_newt', 'use_available']]),
+      itemSupply: new Map([['eye_of_newt', 3]]),
+    }
+    // 5 overloads → 5 super_attacks needed; only 3 eye_of_newt available
+    const result = calc(inputs, 'overload', 5)
+    // 3 crafted (using the available eye_of_newt), 2 purchased
+    expect(result.ingredients.find(i => i.id === 'eye_of_newt')?.totalNeeded).toBe(3)
+    expect(result.ingredients.find(i => i.id === 'super_attack')?.totalNeeded).toBe(2)
+  })
+
+  test('use_available with enough supply: no purchases needed', () => {
+    const inputs: CalculatorInputs = {
+      ...emptyInputs(96),
+      secondaryModes: new Map([['eye_of_newt', 'use_available']]),
+      itemSupply: new Map([['eye_of_newt', 10]]),
+    }
+    const result = calc(inputs, 'overload', 5)
+    expect(result.ingredients.find(i => i.id === 'eye_of_newt')?.totalNeeded).toBe(5)
+    expect(result.ingredients.find(i => i.id === 'super_attack')).toBeUndefined()
+  })
+})
+
+// ─── Achievability ────────────────────────────────────────────────────────────
+
+describe('Achievability', () => {
+  test('no shortfalls returns empty achievability', () => {
+    const result = calc(emptyInputs(96), 'overload', 1)
+    // overload chain has no untradeable shortfalls when fully craftable
+    expect(result.achievability).toHaveLength(0)
+  })
+
+  test('untradeable shortfall produces achievability entry', () => {
+    // Disable extreme_attack (untradeable) — player cannot craft or buy it
+    const inputs: CalculatorInputs = {
+      ...emptyInputs(96),
+      disabledRecipes: new Set(['extreme_attack']),
+    }
+    const result = calc(inputs, 'overload', 5)
+    // extreme_attack is untradeable and still needed → shortfall
+    expect(result.shortfalls.find(s => s.id === 'extreme_attack')).toBeDefined()
+    // achievability: 0 overloads possible without extreme_attack
+    const ach = result.achievability.find(a => a.potionId === 'overload')
+    expect(ach).toBeDefined()
+    expect(ach?.possible).toBe(0)
+    expect(ach?.requested).toBe(5)
+  })
+
+  test('partial supply of untradeable ingredient reduces possible, not to zero', () => {
+    const inputs: CalculatorInputs = {
+      ...emptyInputs(96),
+      disabledRecipes: new Set(['extreme_attack']),
+      potionSupply: new Map([['extreme_attack', { threeDose: 2, fourDose: 0, sixDose: 0 }]]),
+    }
+    const result = calc(inputs, 'overload', 5)
+    const ach = result.achievability.find(a => a.potionId === 'overload')
+    expect(ach?.possible).toBeGreaterThan(0)
+    expect(ach?.possible).toBeLessThan(5)
+  })
+})
+
+// ─── Craft steps ──────────────────────────────────────────────────────────────
+
+describe('Craft steps', () => {
+  test('steps are returned in post-order (children before parents)', () => {
+    const result = calc(emptyInputs(96), 'overload', 1)
+    expect(result.steps.length).toBeGreaterThan(0)
+    // overload must be the last step (it is the root)
+    expect(result.steps[result.steps.length - 1].potionId).toBe('overload')
+  })
+
+  test('intermediate potions appear as steps', () => {
+    const result = calc(emptyInputs(96), 'overload', 1)
+    const ids = result.steps.map(s => s.potionId)
+    expect(ids).toContain('super_attack')
+    expect(ids).toContain('extreme_attack')
+    expect(ids).toContain('overload')
+    // super_attack must appear before extreme_attack
+    expect(ids.indexOf('super_attack')).toBeLessThan(ids.indexOf('extreme_attack'))
+    // extreme_attack must appear before overload
+    expect(ids.indexOf('extreme_attack')).toBeLessThan(ids.indexOf('overload'))
+  })
+
+  test('craft count matches requested quantity', () => {
+    const result = calc(emptyInputs(96), 'overload', 7)
+    const overloadStep = result.steps.find(s => s.potionId === 'overload')
+    expect(overloadStep?.crafts).toBe(7)
+  })
+
+  test('step inputs reflect scroll savings when active', () => {
+    const inputs: CalculatorInputs = { ...emptyInputs(96), scrollOfCleansing: true }
+    const result = calc(inputs, 'overload', 1000)
+    const superAttackStep = result.steps.find(s => s.potionId === 'super_attack')
+    const iritInput = superAttackStep?.inputs.find(i => i.id === 'clean_irit')
+    expect(iritInput).toBeDefined()
+    // scroll should reduce qty below rawQty for saveable inputs
+    expect(iritInput!.qty).toBeLessThan(iritInput!.rawQty)
+  })
+})

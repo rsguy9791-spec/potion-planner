@@ -12,13 +12,15 @@ const emptyInputs: CalculatorInputs = {
   herbSupply: new Map(),
   itemSupply: new Map(),
   potionSupply: new Map(),
-
-  disabledIngredients: new Set(),
+  secondaryModes: new Map(),
+  disabledRecipes: new Set(),
+  preferredRecipeTier: new Map(),
+  scrollOfCleansing: false,
 }
 
 function renderComponent(inputs: CalculatorInputs = emptyInputs) {
   return render(SupplyTable, {
-    props: { inputs, disabledIngredients: inputs.disabledIngredients },
+    props: { inputs },
     global: { plugins: [vuetify] },
   })
 }
