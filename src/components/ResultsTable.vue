@@ -118,7 +118,7 @@ const emit = defineEmits<{
 }>()
 
 const KIND_GROUP: Record<string, string> = {
-  herb_clean: 'Herbs',
+  herb: 'Herbs',
   secondary: 'Secondaries',
   potion: 'Potions',
   vial: 'Vials',

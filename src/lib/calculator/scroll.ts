@@ -3,7 +3,7 @@ import type { Recipe, RecipeIngredient } from '@/types'
 export function isCleansingSaveable(inp: RecipeIngredient, index: number): boolean {
   if (index === 0) return false                    // primary input (vial, base potion) — never saved
   if (inp.cleansingSaveable === false) return false // explicit exception (runes etc.)
-  return true                                      // secondary, herb_clean, misc, potion at index 1+
+  return true                                      // secondary, herb, misc, potion at index 1+
 }
 
 /**

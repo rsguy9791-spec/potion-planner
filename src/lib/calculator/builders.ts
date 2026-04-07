@@ -4,7 +4,7 @@ import type { Accumulator } from './types'
 import { cleansingMultiplier, isCleansingSaveable } from './scroll'
 
 const KIND_ORDER: Record<string, number> = {
-  herb_clean: 0,
+  herb: 0,
   secondary:  1,
   potion:     2,
   vial:       3,
@@ -28,7 +28,7 @@ export function buildResults(
     let currentlyHave = 0
     let totalNeeded = netNeeded
 
-    if (kind === 'herb_clean') {
+    if (kind === 'herb') {
       const cleanId = id.startsWith('clean_') ? id : (def?.pairedHerbId ?? id)
       const herbSupply = inputs.herbSupply.get(cleanId)
       if (herbSupply) currentlyHave = herbSupply.cleanQty + herbSupply.grimyQty
@@ -79,7 +79,7 @@ export function buildSteps(
       // For twoStepMix recipes, identify the herb so we can insert the unf-from-supply
       // entry immediately after it in one forward pass (no post-hoc mutation).
       const herbRecipeInput = recipe.twoStepMix
-        ? recipe.inputs.find(i => i.kind === 'herb_clean')
+        ? recipe.inputs.find(i => i.kind === 'herb')
         : undefined
       const herbName = herbRecipeInput
         ? (INGREDIENT_MAP.get(herbRecipeInput.id)?.name ?? herbRecipeInput.id)
@@ -87,7 +87,7 @@ export function buildSteps(
 
       const inputs = recipe.inputs.flatMap((inp, index) => {
         const name = INGREDIENT_MAP.get(inp.id)?.name ?? RECIPE_BY_ID.get(inp.id)?.name ?? inp.id
-        const isStep1Input = recipe.twoStepMix && (inp.kind === 'vial' || inp.kind === 'herb_clean')
+        const isStep1Input = recipe.twoStepMix && (inp.kind === 'vial' || inp.kind === 'herb')
         const craftsBase = isStep1Input ? step1Crafts : crafts
         const rawQty = craftsBase * inp.qty
         const saveable = scrollOfCleansing && isCleansingSaveable(inp, index)
@@ -111,7 +111,7 @@ export function buildSteps(
 
         // After the herb, emit the unf-from-supply entry (if any) so it sits naturally
         // between the step-1 inputs (vial + herb) and the step-2 secondary.
-        if (inp.kind === 'herb_clean' && fromSupply > 0) {
+        if (inp.kind === 'herb' && fromSupply > 0) {
           return [entry, { id: inp.id, name: `${herbName} (unf)`, kind: 'unfinished_potion' as const, qty: fromSupply, rawQty: fromSupply }]
         }
 

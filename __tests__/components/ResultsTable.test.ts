@@ -11,7 +11,7 @@ function ing(overrides: Partial<IngredientResult> = {}): IngredientResult {
   return {
     id: 'clean_torstol',
     name: 'Torstol',
-    kind: 'herb_clean',
+    kind: 'herb',
     totalNeeded: 1,
     rawQty: 1,
     currentlyHave: 0,
@@ -105,7 +105,7 @@ describe('ResultsTable', () => {
     renderComponent(makeResult({
       targets: [{ name: 'Overload', qty: 1 }],
       ingredients: [
-        ing({ id: 'clean_torstol', name: 'Torstol', kind: 'herb_clean' }),
+        ing({ id: 'clean_torstol', name: 'Torstol', kind: 'herb' }),
         ing({ id: 'eye_of_newt', name: 'Eye of newt', kind: 'secondary' }),
       ],
     }))
@@ -137,7 +137,7 @@ describe('ResultsTable — unf sub-step display', () => {
       steps: [makeStep({
         inputs: [
           { id: 'vial_of_water', name: 'Vial of water',  kind: 'vial',       qty: 7,  rawQty: 7 },
-          { id: 'clean_irit',    name: 'Irit leaf',       kind: 'herb_clean', qty: 7,  rawQty: 7 },
+          { id: 'clean_irit',    name: 'Irit leaf',       kind: 'herb', qty: 7,  rawQty: 7 },
           { id: 'clean_irit',    name: 'Irit leaf (unf)', kind: 'unfinished_potion', qty: 3,  rawQty: 3 },
           { id: 'eye_of_newt',   name: 'Eye of newt',     kind: 'secondary',  qty: 10, rawQty: 10 },
         ],
@@ -153,7 +153,7 @@ describe('ResultsTable — unf sub-step display', () => {
       steps: [makeStep({
         inputs: [
           { id: 'vial_of_water', name: 'Vial of water', kind: 'vial',       qty: 10, rawQty: 10 },
-          { id: 'clean_irit',    name: 'Irit leaf',      kind: 'herb_clean', qty: 10, rawQty: 10 },
+          { id: 'clean_irit',    name: 'Irit leaf',      kind: 'herb', qty: 10, rawQty: 10 },
           { id: 'eye_of_newt',   name: 'Eye of newt',    kind: 'secondary',  qty: 10, rawQty: 10 },
         ],
         unfStep: { crafts: 10, fromSupply: 0, herbName: 'Irit leaf' },

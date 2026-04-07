@@ -117,7 +117,7 @@ const {
 const sidebarOpen = ref(false)
 
 function onUpdateHave(id: string, kind: string, value: number) {
-  if (kind === 'herb_clean') {
+  if (kind === 'herb') {
     setHerbClean(id, value)
   } else {
     setItemQty(id, value)

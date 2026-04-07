@@ -9,15 +9,15 @@ export const RECIPES: Recipe[] = [
     id: 'guthix_rest', name: 'Guthix rest', levelRequired: 18, outputDose: 3, category: 'regular', twoStepMix: true,
     inputs: [
       { id: 'vial_of_water',   kind: 'vial',       qty: 1 },
-      { id: 'clean_harralander',kind: 'herb_clean', qty: 1 },
-      { id: 'clean_marrentill', kind: 'herb_clean', qty: 1 },
+      { id: 'clean_harralander',kind: 'herb', qty: 1 },
+      { id: 'clean_marrentill', kind: 'herb', qty: 1 },
     ],
   },
   {
     id: 'energy_potion', name: 'Energy potion', levelRequired: 26, outputDose: 3, category: 'regular', twoStepMix: true,
     inputs: [
       { id: 'vial_of_water',    kind: 'vial',       qty: 1 },
-      { id: 'clean_harralander',kind: 'herb_clean', qty: 1 },
+      { id: 'clean_harralander',kind: 'herb', qty: 1 },
       { id: 'chocolate_dust',   kind: 'secondary',  qty: 1 },
     ],
   },
@@ -25,7 +25,7 @@ export const RECIPES: Recipe[] = [
     id: 'summoning_potion', name: 'Summoning potion', levelRequired: 40, outputDose: 3, category: 'regular', twoStepMix: true,
     inputs: [
       { id: 'vial_of_water',    kind: 'vial',       qty: 1 },
-      { id: 'clean_spirit_weed',kind: 'herb_clean', qty: 1 },
+      { id: 'clean_spirit_weed',kind: 'herb', qty: 1 },
       { id: 'cockatrice_egg',   kind: 'secondary',  qty: 1 },
     ],
   },
@@ -33,7 +33,7 @@ export const RECIPES: Recipe[] = [
     id: 'runecrafting_potion', name: 'Runecrafting potion', levelRequired: 54, outputDose: 3, category: 'regular', twoStepMix: true,
     inputs: [
       { id: 'vial_of_water',      kind: 'vial',       qty: 1 },
-      { id: 'clean_wergali',      kind: 'herb_clean', qty: 1 },
+      { id: 'clean_wergali',      kind: 'herb', qty: 1 },
       { id: 'seasonal_sheep_wool',kind: 'secondary',  qty: 1 },
     ],
   },
@@ -41,7 +41,7 @@ export const RECIPES: Recipe[] = [
     id: 'invention_potion', name: 'Invention potion', levelRequired: 77, outputDose: 3, category: 'regular', twoStepMix: true,
     inputs: [
       { id: 'vial_of_water',     kind: 'vial',       qty: 1 },
-      { id: 'clean_snapdragon',  kind: 'herb_clean', qty: 1 },
+      { id: 'clean_snapdragon',  kind: 'herb', qty: 1 },
       { id: 'chinchompa_residue',kind: 'secondary',  qty: 1 },
     ],
   },
@@ -50,7 +50,7 @@ export const RECIPES: Recipe[] = [
     inputs: [
       { id: 'super_energy',  kind: 'potion',     qty: 1, dose: 3 },
       { id: 'vial_of_water', kind: 'vial',       qty: 1 },
-      { id: 'clean_arbuck',  kind: 'herb_clean', qty: 1 },
+      { id: 'clean_arbuck',  kind: 'herb', qty: 1 },
     ],
   },
 
@@ -59,7 +59,7 @@ export const RECIPES: Recipe[] = [
     id: 'super_attack', name: 'Super attack', levelRequired: 45, outputDose: 3, category: 'super', twoStepMix: true,
     inputs: [
       { id: 'vial_of_water', kind: 'vial',       qty: 1 },
-      { id: 'clean_irit',    kind: 'herb_clean', qty: 1 },
+      { id: 'clean_irit',    kind: 'herb', qty: 1 },
       { id: 'eye_of_newt',   kind: 'secondary',  qty: 1 },
     ],
   },
@@ -67,7 +67,7 @@ export const RECIPES: Recipe[] = [
     id: 'super_strength', name: 'Super strength', levelRequired: 55, outputDose: 3, category: 'super', twoStepMix: true,
     inputs: [
       { id: 'vial_of_water', kind: 'vial',       qty: 1 },
-      { id: 'clean_kwuarm',  kind: 'herb_clean', qty: 1 },
+      { id: 'clean_kwuarm',  kind: 'herb', qty: 1 },
       { id: 'limpwurt_root', kind: 'secondary',  qty: 1 },
     ],
   },
@@ -75,7 +75,7 @@ export const RECIPES: Recipe[] = [
     id: 'super_defence', name: 'Super defence', levelRequired: 66, outputDose: 3, category: 'super', twoStepMix: true,
     inputs: [
       { id: 'vial_of_water',   kind: 'vial',       qty: 1 },
-      { id: 'clean_cadantine', kind: 'herb_clean', qty: 1 },
+      { id: 'clean_cadantine', kind: 'herb', qty: 1 },
       { id: 'white_berries',   kind: 'secondary',  qty: 1 },
     ],
   },
@@ -83,7 +83,7 @@ export const RECIPES: Recipe[] = [
     id: 'super_ranging', name: 'Super ranging', levelRequired: 72, outputDose: 3, category: 'super', twoStepMix: true,
     inputs: [
       { id: 'vial_of_water',     kind: 'vial',       qty: 1 },
-      { id: 'clean_dwarf_weed',  kind: 'herb_clean', qty: 1 },
+      { id: 'clean_dwarf_weed',  kind: 'herb', qty: 1 },
       { id: 'wine_of_zamorak',   kind: 'secondary',  qty: 1 },
     ],
   },
@@ -91,7 +91,7 @@ export const RECIPES: Recipe[] = [
     id: 'super_magic', name: 'Super magic', levelRequired: 76, outputDose: 3, category: 'super', twoStepMix: true,
     inputs: [
       { id: 'vial_of_water',   kind: 'vial',       qty: 1 },
-      { id: 'clean_lantadyme', kind: 'herb_clean', qty: 1 },
+      { id: 'clean_lantadyme', kind: 'herb', qty: 1 },
       { id: 'potato_cactus',   kind: 'secondary',  qty: 1 },
     ],
   },
@@ -99,7 +99,7 @@ export const RECIPES: Recipe[] = [
     id: 'super_necromancy', name: 'Super necromancy', levelRequired: 79, outputDose: 3, category: 'super', twoStepMix: true,
     inputs: [
       { id: 'vial_of_water',     kind: 'vial',       qty: 1 },
-      { id: 'clean_spirit_weed', kind: 'herb_clean', qty: 1 },
+      { id: 'clean_spirit_weed', kind: 'herb', qty: 1 },
       { id: 'congealed_blood',   kind: 'secondary',  qty: 5 },
     ],
   },
@@ -108,7 +108,7 @@ export const RECIPES: Recipe[] = [
     id: 'prayer_potion', name: 'Prayer potion', levelRequired: 38, outputDose: 3, category: 'regular', twoStepMix: true,
     inputs: [
       { id: 'vial_of_water', kind: 'vial',       qty: 1 },
-      { id: 'clean_ranarr',  kind: 'herb_clean', qty: 1 },
+      { id: 'clean_ranarr',  kind: 'herb', qty: 1 },
       { id: 'snape_grass',   kind: 'secondary',  qty: 1 },
     ],
   },
@@ -116,7 +116,7 @@ export const RECIPES: Recipe[] = [
     id: 'super_antipoison', name: 'Super antipoison', levelRequired: 48, outputDose: 3, category: 'super', twoStepMix: true,
     inputs: [
       { id: 'vial_of_water',     kind: 'vial',       qty: 1 },
-      { id: 'clean_irit',        kind: 'herb_clean', qty: 1 },
+      { id: 'clean_irit',        kind: 'herb', qty: 1 },
       { id: 'unicorn_horn_dust', kind: 'secondary',  qty: 1 },
     ],
   },
@@ -124,7 +124,7 @@ export const RECIPES: Recipe[] = [
     id: 'antifire', name: 'Antifire potion', levelRequired: 46, outputDose: 3, category: 'regular', twoStepMix: true,
     inputs: [
       { id: 'vial_of_water',     kind: 'vial',       qty: 1 },
-      { id: 'clean_lantadyme',   kind: 'herb_clean', qty: 1 },
+      { id: 'clean_lantadyme',   kind: 'herb', qty: 1 },
       { id: 'dragon_scale_dust', kind: 'secondary',  qty: 1 },
     ],
   },
@@ -134,21 +134,21 @@ export const RECIPES: Recipe[] = [
     id: 'extreme_attack', name: 'Extreme attack', levelRequired: 88, outputDose: 3, category: 'extreme', tradeable: false,
     inputs: [
       { id: 'super_attack',  kind: 'potion',     qty: 1, dose: 3 },
-      { id: 'clean_avantoe', kind: 'herb_clean', qty: 1 },
+      { id: 'clean_avantoe', kind: 'herb', qty: 1 },
     ],
   },
   {
     id: 'extreme_strength', name: 'Extreme strength', levelRequired: 89, outputDose: 3, category: 'extreme', tradeable: false,
     inputs: [
       { id: 'super_strength',  kind: 'potion',     qty: 1, dose: 3 },
-      { id: 'clean_dwarf_weed',kind: 'herb_clean', qty: 1 },
+      { id: 'clean_dwarf_weed',kind: 'herb', qty: 1 },
     ],
   },
   {
     id: 'extreme_defence', name: 'Extreme defence', levelRequired: 90, outputDose: 3, category: 'extreme', tradeable: false,
     inputs: [
       { id: 'super_defence',   kind: 'potion',     qty: 1, dose: 3 },
-      { id: 'clean_lantadyme', kind: 'herb_clean', qty: 1 },
+      { id: 'clean_lantadyme', kind: 'herb', qty: 1 },
     ],
   },
   {
@@ -183,7 +183,7 @@ export const RECIPES: Recipe[] = [
       { id: 'extreme_magic',      kind: 'potion',     qty: 1, dose: 3 },
       { id: 'extreme_ranging',    kind: 'potion',     qty: 1, dose: 3 },
       { id: 'extreme_necromancy', kind: 'potion',     qty: 1, dose: 3 },
-      { id: 'clean_torstol',      kind: 'herb_clean', qty: 1 },
+      { id: 'clean_torstol',      kind: 'herb', qty: 1 },
     ],
   },
   {
@@ -204,7 +204,7 @@ export const RECIPES: Recipe[] = [
     inputs: [
       { id: 'supreme_overload', kind: 'potion',     qty: 1, dose: 6 },
       { id: 'primal_extract',   kind: 'vial',       qty: 1 },
-      { id: 'clean_fellstalk',  kind: 'herb_clean', qty: 1 },
+      { id: 'clean_fellstalk',  kind: 'herb', qty: 1 },
     ],
   },
   {
@@ -237,7 +237,7 @@ export const RECIPES: Recipe[] = [
     inputs: [
       { id: 'supreme_overload_salve', kind: 'potion',     qty: 1, dose: 6 },
       { id: 'primal_extract',         kind: 'vial',       qty: 1 },
-      { id: 'clean_fellstalk',        kind: 'herb_clean', qty: 1 },
+      { id: 'clean_fellstalk',        kind: 'herb', qty: 1 },
     ],
   },
 
@@ -288,7 +288,7 @@ export const RECIPES: Recipe[] = [
     id: 'super_energy', name: 'Super energy', levelRequired: 52, outputDose: 3, category: 'super', twoStepMix: true,
     inputs: [
       { id: 'vial_of_water',     kind: 'vial',       qty: 1 },
-      { id: 'clean_avantoe',     kind: 'herb_clean', qty: 1 },
+      { id: 'clean_avantoe',     kind: 'herb', qty: 1 },
       { id: 'mort_myre_fungus',  kind: 'secondary',  qty: 1 },
     ],
   },
@@ -296,7 +296,7 @@ export const RECIPES: Recipe[] = [
     id: 'super_restore', name: 'Super restore', levelRequired: 63, outputDose: 3, category: 'super', twoStepMix: true,
     inputs: [
       { id: 'vial_of_water',     kind: 'vial',       qty: 1 },
-      { id: 'clean_snapdragon',  kind: 'herb_clean', qty: 1 },
+      { id: 'clean_snapdragon',  kind: 'herb', qty: 1 },
       { id: 'red_spiders_eggs',  kind: 'secondary',  qty: 1 },
     ],
   },
@@ -319,7 +319,7 @@ export const RECIPES: Recipe[] = [
     id: 'aggression_potion', name: 'Aggression potion', levelRequired: 82, outputDose: 3, category: 'regular', twoStepMix: true,
     inputs: [
       { id: 'vial_of_water',   kind: 'vial',       qty: 1 },
-      { id: 'clean_bloodweed', kind: 'herb_clean', qty: 1 },
+      { id: 'clean_bloodweed', kind: 'herb', qty: 1 },
       { id: 'searing_ashes',   kind: 'secondary',  qty: 1 },
     ],
   },
@@ -360,7 +360,7 @@ export const RECIPES: Recipe[] = [
     id: 'saradomin_brew', name: 'Saradomin brew', levelRequired: 81, outputDose: 3, category: 'regular', twoStepMix: true,
     inputs: [
       { id: 'vial_of_water',     kind: 'vial',       qty: 1 },
-      { id: 'clean_toadflax',    kind: 'herb_clean', qty: 1 },
+      { id: 'clean_toadflax',    kind: 'herb', qty: 1 },
       { id: 'crushed_nest',      kind: 'secondary',  qty: 1 },
     ],
   },
@@ -368,7 +368,7 @@ export const RECIPES: Recipe[] = [
     id: 'prayer_renewal', name: 'Prayer renewal', levelRequired: 94, outputDose: 3, category: 'renewals', twoStepMix: true,
     inputs: [
       { id: 'vial_of_water',      kind: 'vial',       qty: 1 },
-      { id: 'clean_fellstalk',    kind: 'herb_clean', qty: 1 },
+      { id: 'clean_fellstalk',    kind: 'herb', qty: 1 },
       { id: 'morchella_mushroom', kind: 'secondary',  qty: 1 },
     ],
   },
@@ -386,7 +386,7 @@ export const RECIPES: Recipe[] = [
       { id: 'crystal_flask',     kind: 'vial',       qty: 1 },
       { id: 'overload',          kind: 'potion',     qty: 1, dose: 4 },
       { id: 'aggression_potion', kind: 'potion',     qty: 1, dose: 4 },
-      { id: 'clean_arbuck',      kind: 'herb_clean', qty: 1 },
+      { id: 'clean_arbuck',      kind: 'herb', qty: 1 },
     ],
   },
   {
@@ -406,7 +406,7 @@ export const RECIPES: Recipe[] = [
       { id: 'super_adrenaline',       kind: 'potion',    qty: 1, dose: 4 },
       { id: 'primal_extract',         kind: 'vial',      qty: 1 },
       { id: 'bottled_dinosaur_roar',  kind: 'secondary', qty: 2 },
-      { id: 'clean_arbuck',           kind: 'herb_clean',qty: 1 },
+      { id: 'clean_arbuck',           kind: 'herb',qty: 1 },
     ],
   },
   {
@@ -416,7 +416,7 @@ export const RECIPES: Recipe[] = [
       { id: 'super_adrenaline',       kind: 'potion',    qty: 1, dose: 3 },
       { id: 'primal_extract',         kind: 'misc',      qty: 1 },
       { id: 'bottled_dinosaur_roar',  kind: 'secondary', qty: 1 },
-      { id: 'clean_arbuck',           kind: 'herb_clean',qty: 1 },
+      { id: 'clean_arbuck',           kind: 'herb',qty: 1 },
     ],
   },
 
@@ -430,7 +430,7 @@ export const RECIPES: Recipe[] = [
       { id: 'soul_rune',               kind: 'secondary', qty: 5, cleansingSaveable: false },
       { id: 'chaos_rune',              kind: 'secondary', qty: 5, cleansingSaveable: false },
       { id: 'bottled_dinosaur_roar',   kind: 'secondary', qty: 2 },
-      { id: 'clean_dwarf_weed',        kind: 'herb_clean',qty: 1 },
+      { id: 'clean_dwarf_weed',        kind: 'herb',qty: 1 },
     ],
   },
   {
@@ -442,7 +442,7 @@ export const RECIPES: Recipe[] = [
       { id: 'soul_rune',               kind: 'secondary', qty: 3, cleansingSaveable: false },
       { id: 'chaos_rune',              kind: 'secondary', qty: 3, cleansingSaveable: false },
       { id: 'bottled_dinosaur_roar',   kind: 'secondary', qty: 1 },
-      { id: 'clean_dwarf_weed',        kind: 'herb_clean',qty: 1 },
+      { id: 'clean_dwarf_weed',        kind: 'herb',qty: 1 },
     ],
   },
 
@@ -453,7 +453,7 @@ export const RECIPES: Recipe[] = [
     inputs: [
       { id: 'bomb_vial',        kind: 'misc',      qty: 1 },
       { id: 'primal_extract',   kind: 'misc',      qty: 1 },
-      { id: 'clean_irit',       kind: 'herb_clean',qty: 1 },
+      { id: 'clean_irit',       kind: 'herb',qty: 1 },
       { id: 'poison_slime',     kind: 'secondary', qty: 2 },
       { id: 'weapon_poison_pp', kind: 'potion',    qty: 1, dose: 4 },
     ],
@@ -464,7 +464,7 @@ export const RECIPES: Recipe[] = [
     inputs: [
       { id: 'bomb_vial',        kind: 'misc',      qty: 1 },
       { id: 'primal_extract',   kind: 'misc',      qty: 1 },
-      { id: 'clean_irit',       kind: 'herb_clean',qty: 1 },
+      { id: 'clean_irit',       kind: 'herb',qty: 1 },
       { id: 'poison_slime',     kind: 'secondary', qty: 1 },
       { id: 'weapon_poison_pp', kind: 'potion',    qty: 1, dose: 3 },
     ],
@@ -479,7 +479,7 @@ export const RECIPES: Recipe[] = [
       { id: 'primal_extract',   kind: 'misc',      qty: 1 },
       { id: 'beak_snot',        kind: 'secondary', qty: 2 },
       { id: 'dinosaur_claws',   kind: 'secondary', qty: 2 },
-      { id: 'clean_cadantine',  kind: 'herb_clean',qty: 1 },
+      { id: 'clean_cadantine',  kind: 'herb',qty: 1 },
     ],
   },
   {
@@ -490,7 +490,7 @@ export const RECIPES: Recipe[] = [
       { id: 'primal_extract',   kind: 'misc',      qty: 1 },
       { id: 'beak_snot',        kind: 'secondary', qty: 1 },
       { id: 'dinosaur_claws',   kind: 'secondary', qty: 1 },
-      { id: 'clean_cadantine',  kind: 'herb_clean',qty: 1 },
+      { id: 'clean_cadantine',  kind: 'herb',qty: 1 },
     ],
   },
 
@@ -593,7 +593,7 @@ export const RECIPES: Recipe[] = [
     id: 'summoning_renewal', name: 'Summoning renewal potion', levelRequired: 88, outputDose: 3, category: 'renewals', twoStepMix: true,
     inputs: [
       { id: 'vial_of_water',    kind: 'vial',      qty: 1 },
-      { id: 'clean_spirit_weed',kind: 'herb_clean', qty: 1 },
+      { id: 'clean_spirit_weed',kind: 'herb', qty: 1 },
       { id: 'tombshroom',       kind: 'secondary', qty: 1 },
     ],
   },
@@ -617,7 +617,7 @@ export const RECIPES: Recipe[] = [
     id: 'harvest_potion', name: 'Harvest potion', levelRequired: 95, outputDose: 3, category: 'regular', twoStepMix: true,
     inputs: [
       { id: 'primal_extract', kind: 'vial',      qty: 1 },
-      { id: 'clean_arbuck',   kind: 'herb_clean', qty: 1 },
+      { id: 'clean_arbuck',   kind: 'herb', qty: 1 },
       { id: 'watermelon',     kind: 'secondary', qty: 1 },
     ],
   },
@@ -769,7 +769,7 @@ export const RECIPES: Recipe[] = [
     inputs: [
       { id: 'powerburst_vial',     kind: 'misc',      qty: 1 },
       { id: 'primal_extract',      kind: 'misc',      qty: 1 },
-      { id: 'clean_snapdragon',    kind: 'herb_clean', qty: 1 },
+      { id: 'clean_snapdragon',    kind: 'herb', qty: 1 },
       { id: 'summoning_potion',    kind: 'potion',    qty: 1, dose: 4 },
       { id: 'bottled_dinosaur_roar',kind: 'secondary', qty: 2 },
     ],
@@ -780,7 +780,7 @@ export const RECIPES: Recipe[] = [
     inputs: [
       { id: 'powerburst_vial',     kind: 'misc',      qty: 1 },
       { id: 'primal_extract',      kind: 'misc',      qty: 1 },
-      { id: 'clean_snapdragon',    kind: 'herb_clean', qty: 1 },
+      { id: 'clean_snapdragon',    kind: 'herb', qty: 1 },
       { id: 'summoning_potion',    kind: 'potion',    qty: 1, dose: 3 },
       { id: 'bottled_dinosaur_roar',kind: 'secondary', qty: 1 },
     ],

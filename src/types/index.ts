@@ -6,7 +6,7 @@ export type RecipeGroup = string
 export type PotionDose = 1 | 2 | 3 | 4 | 6
 
 export type IngredientKind =
-  | 'herb_clean'
+  | 'herb'
   | 'unfinished_potion'
   | 'secondary'
   | 'potion'

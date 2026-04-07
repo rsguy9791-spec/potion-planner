@@ -172,7 +172,7 @@ const emit = defineEmits<{
 const HERB_ROWS = (() => {
   const seen = new Set<string>()
   return INGREDIENTS
-    .filter(i => i.kind === 'herb_clean' && i.id.startsWith('clean_'))
+    .filter(i => i.kind === 'herb' && i.id.startsWith('clean_'))
     .filter(i => { if (seen.has(i.id)) return false; seen.add(i.id); return true })
     .map(i => ({ cleanId: i.id, name: i.name }))
     .sort((a, b) => a.name.localeCompare(b.name))

@@ -88,7 +88,7 @@ function recurseInputs(
   // still required for all crafts.
   let step1Crafts = craftsToExecute
   if (recipe.twoStepMix) {
-    const herbInput = recipe.inputs.find(i => i.kind === 'herb_clean')
+    const herbInput = recipe.inputs.find(i => i.kind === 'herb')
     if (herbInput) {
       const unfAvailable = state.unfPool.get(herbInput.id) ?? 0
       const unfUsed = Math.min(unfAvailable, craftsToExecute)
@@ -104,7 +104,7 @@ function recurseInputs(
   for (const [index, input] of recipe.inputs.entries()) {
     // Step 1 inputs (vial + herb) only needed for crafts not covered by unf supply.
     // Step 2 inputs (secondary, potion bases) needed for all crafts.
-    const isStep1Input = recipe.twoStepMix && (input.kind === 'vial' || input.kind === 'herb_clean')
+    const isStep1Input = recipe.twoStepMix && (input.kind === 'vial' || input.kind === 'herb')
     const craftsBase = isStep1Input ? step1Crafts : craftsToExecute
 
     if (input.kind === 'potion') {

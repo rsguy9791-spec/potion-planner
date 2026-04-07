@@ -675,7 +675,7 @@ describe('Unf supply — partial (10 super attacks, 3 unf irit)', () => {
     expect(unfEntry?.qty).toBe(3)
     expect(unfEntry?.name).toMatch(/unf/i)
     // positioned after herb, before secondary
-    const herbIdx = step!.inputs.findIndex(i => i.kind === 'herb_clean')
+    const herbIdx = step!.inputs.findIndex(i => i.kind === 'herb')
     const unfIdx  = step!.inputs.findIndex(i => i.kind === 'unfinished_potion')
     const eyeIdx  = step!.inputs.findIndex(i => i.id === 'eye_of_newt')
     expect(unfIdx).toBe(herbIdx + 1)
