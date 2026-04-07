@@ -7,7 +7,7 @@ const DEFAULT_LEVEL = 120
 const STORAGE_KEY = 'pots_calculator'
 
 function emptyHerbSupply(): HerbSupply {
-  return { cleanQty: 0, grimyQty: 0 }
+  return { cleanQty: 0, grimyQty: 0, unfQty: 0 }
 }
 
 function emptyPotionSupply(): PotionSupply {
@@ -56,7 +56,11 @@ function loadFromStorage() {
       return
     }
     inputs.herbloreLevel = data.herbloreLevel ?? DEFAULT_LEVEL
-    inputs.herbSupply = new Map(data.herbSupply ?? [])
+    inputs.herbSupply = new Map(
+      (data.herbSupply ?? []).map(([id, s]: [string, any]) => [
+        id, { cleanQty: s.cleanQty ?? 0, grimyQty: s.grimyQty ?? 0, unfQty: s.unfQty ?? 0 },
+      ])
+    )
     inputs.itemSupply = new Map(data.itemSupply ?? [])
     inputs.potionSupply = new Map(data.potionSupply ?? [])
     inputs.secondaryModes = new Map(data.secondaryModes ?? [])
@@ -108,6 +112,11 @@ function setHerbClean(herbId: string, qty: number) {
 function setHerbGrimy(herbId: string, qty: number) {
   const existing = inputs.herbSupply.get(herbId) ?? emptyHerbSupply()
   inputs.herbSupply.set(herbId, { ...existing, grimyQty: qty })
+}
+
+function setHerbUnf(herbId: string, qty: number) {
+  const existing = inputs.herbSupply.get(herbId) ?? emptyHerbSupply()
+  inputs.herbSupply.set(herbId, { ...existing, unfQty: qty })
 }
 
 function setItemQty(itemId: string, qty: number) {
@@ -194,6 +203,7 @@ export function useCalculator() {
     setTargetQty,
     setHerbClean,
     setHerbGrimy,
+    setHerbUnf,
     setItemQty,
     setPotionThreeDose,
     setPotionFourDose,

@@ -23,16 +23,21 @@
       </v-expansion-panel-title>
       <v-expansion-panel-text class="pa-2">
         <v-row v-for="herb in HERB_ROWS" :key="herb.cleanId" align="center" no-gutters class="mb-2">
-          <v-col cols="4" class="text-body-2 pr-2" style="font-size:0.8rem">{{ herb.name }}</v-col>
-          <v-col cols="4" class="pr-1">
+          <v-col cols="3" class="text-body-2 pr-2" style="font-size:0.8rem">{{ herb.name }}</v-col>
+          <v-col cols="3" class="pr-1">
             <v-text-field :model-value="getHerbClean(herb.cleanId)" type="number" min="0" label="Clean"
               density="compact" variant="outlined" hide-details
               @update:model-value="v => emit('setHerbClean', herb.cleanId, Math.max(0, Number(v)))" />
           </v-col>
-          <v-col cols="4">
+          <v-col cols="3" class="pr-1">
             <v-text-field :model-value="getHerbGrimy(herb.cleanId)" type="number" min="0" label="Grimy"
               density="compact" variant="outlined" hide-details
               @update:model-value="v => emit('setHerbGrimy', herb.cleanId, Math.max(0, Number(v)))" />
+          </v-col>
+          <v-col cols="3">
+            <v-text-field :model-value="getHerbUnf(herb.cleanId)" type="number" min="0" label="Unf"
+              density="compact" variant="outlined" hide-details
+              @update:model-value="v => emit('setHerbUnf', herb.cleanId, Math.max(0, Number(v)))" />
           </v-col>
         </v-row>
       </v-expansion-panel-text>
@@ -154,6 +159,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   setHerbClean: [herbId: string, qty: number]
   setHerbGrimy: [herbId: string, qty: number]
+  setHerbUnf: [herbId: string, qty: number]
   setItemQty: [itemId: string, qty: number]
   setPotionThreeDose: [potionId: string, qty: number]
   setPotionFourDose: [potionId: string, qty: number]
@@ -214,6 +220,9 @@ function getHerbClean(herbId: string) {
 }
 function getHerbGrimy(herbId: string) {
   return props.inputs.herbSupply.get(herbId)?.grimyQty ?? 0
+}
+function getHerbUnf(herbId: string) {
+  return props.inputs.herbSupply.get(herbId)?.unfQty ?? 0
 }
 function getItemQty(itemId: string) {
   return props.inputs.itemSupply.get(itemId) ?? 0

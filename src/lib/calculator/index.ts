@@ -1,7 +1,7 @@
 import type { IngredientId, CalculatorInputs, IngredientResult, CalculationResult, TargetPotion, ShortfallItem } from '@/types'
 import { RECIPE_BY_ID } from '@/data/recipes'
 import type { ResolveConfig } from './types'
-import { resolveChain, emptyResolveState, buildDosePool, buildSecondaryPool } from './resolution'
+import { resolveChain, emptyResolveState, buildDosePool, buildSecondaryPool, buildUnfPool } from './resolution'
 import { buildResults, buildSteps } from './builders'
 import { computeAchievability } from './achievability'
 
@@ -27,6 +27,7 @@ export function calculateAll(
     ...emptyResolveState(),
     dosePool: buildDosePool(inputs),
     secondaryPool: buildSecondaryPool(inputs),
+    unfPool: buildUnfPool(inputs),
   }
 
   for (const target of activeTargets) {
@@ -48,7 +49,7 @@ export function calculateAll(
   return {
     targets: targetSummary,
     ingredients,
-    steps: buildSteps(state.craftCounts, state.craftOrder, state.decantConsumed, inputs.scrollOfCleansing),
+    steps: buildSteps(state.craftCounts, state.craftOrder, state.decantConsumed, inputs.scrollOfCleansing, state.unfConsumed),
     shortfalls,
     achievability: computeAchievability(activeTargets, shortfalls, inputs),
   }

@@ -25,6 +25,14 @@ export function buildDosePool(inputs: CalculatorInputs): DosePool {
   return pool
 }
 
+export function buildUnfPool(inputs: CalculatorInputs): Map<IngredientId, number> {
+  const pool = new Map<IngredientId, number>()
+  for (const [herbId, supply] of inputs.herbSupply) {
+    if (supply.unfQty > 0) pool.set(herbId, supply.unfQty)
+  }
+  return pool
+}
+
 function deductFromDosePool(
   id: IngredientId,
   qty: number,
@@ -75,11 +83,33 @@ function recurseInputs(
 ): void {
   const multiplier = cleansingMultiplier(recipe, config.scrollOfCleansing)
 
+  // For twoStepMix recipes, consume unfinished potions from supply to reduce
+  // the number of vial+herb mixes needed (step 1). The secondary (step 2) is
+  // still required for all crafts.
+  let step1Crafts = craftsToExecute
+  if (recipe.twoStepMix) {
+    const herbInput = recipe.inputs.find(i => i.kind === 'herb_clean')
+    if (herbInput) {
+      const unfAvailable = state.unfPool.get(herbInput.id) ?? 0
+      const unfUsed = Math.min(unfAvailable, craftsToExecute)
+      if (unfUsed > 0) {
+        state.unfPool.set(herbInput.id, unfAvailable - unfUsed)
+        state.unfConsumed.set(recipe.id, (state.unfConsumed.get(recipe.id) ?? 0) + unfUsed)
+        step1Crafts = craftsToExecute - unfUsed
+      }
+    }
+  }
+
   state.visiting.add(recipe.id)
   for (const [index, input] of recipe.inputs.entries()) {
+    // Step 1 inputs (vial + herb) only needed for crafts not covered by unf supply.
+    // Step 2 inputs (secondary, potion bases) needed for all crafts.
+    const isStep1Input = recipe.twoStepMix && (input.kind === 'vial' || input.kind === 'herb_clean')
+    const craftsBase = isStep1Input ? step1Crafts : craftsToExecute
+
     if (input.kind === 'potion') {
       const saveable = config.scrollOfCleansing && isCleansingSaveable(input, index)
-      let effectiveCrafts = saveable ? Math.ceil(craftsToExecute * multiplier) : craftsToExecute
+      let effectiveCrafts = saveable ? Math.ceil(craftsBase * multiplier) : craftsBase
 
       if (input.dose) {
         const childRecipe = RECIPE_BY_ID.get(input.id)
@@ -97,9 +127,9 @@ function recurseInputs(
     } else {
       const saveable = config.scrollOfCleansing && isCleansingSaveable(input, index)
       const qty = saveable
-        ? Math.ceil(craftsToExecute * multiplier) * input.qty
-        : craftsToExecute * input.qty
-      const rawQty = craftsToExecute * input.qty
+        ? Math.ceil(craftsBase * multiplier) * input.qty
+        : craftsBase * input.qty
+      const rawQty = craftsBase * input.qty
       accAdd(state.accumulator, input.id, qty, rawQty)
     }
   }
@@ -197,5 +227,7 @@ export function emptyResolveState(): ResolveState {
     craftCounts: new Map(),
     craftOrder: [],
     decantConsumed: new Map(),
+    unfPool: new Map(),
+    unfConsumed: new Map(),
   }
 }

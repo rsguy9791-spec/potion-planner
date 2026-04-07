@@ -7,6 +7,7 @@ export type PotionDose = 1 | 2 | 3 | 4 | 6
 
 export type IngredientKind =
   | 'herb_clean'
+  | 'unfinished_potion'
   | 'secondary'
   | 'potion'
   | 'vial'
@@ -68,6 +69,7 @@ export interface IngredientDef {
 export interface HerbSupply {
   cleanQty: number
   grimyQty: number
+  unfQty: number
 }
 
 export interface PotionSupply {
@@ -126,6 +128,7 @@ export interface CraftStep {
   inputs: Array<{
     id: IngredientId
     name: string
+    kind: IngredientKind
     /** Quantity required after scroll of cleansing savings. */
     qty: number
     /** Quantity required without scroll of cleansing. Equal to qty when scroll is inactive or ingredient is not saveable. */
@@ -137,6 +140,18 @@ export interface CraftStep {
      */
     decantFrom?: { fromDose: PotionDose; fromCount: number }
   }>
+  /**
+   * Present on twoStepMix recipes. Describes the "make unfinished potion" sub-step
+   * that precedes adding the secondary ingredient.
+   */
+  unfStep?: {
+    /** Unfinished potions to make from scratch (= crafts − fromSupply). */
+    crafts: number
+    /** Unfinished potions consumed from the user's supply. */
+    fromSupply: number
+    /** Display name of the herb, e.g. "Irit leaf". */
+    herbName: string
+  }
 }
 
 export interface ShortfallItem {

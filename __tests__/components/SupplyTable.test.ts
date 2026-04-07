@@ -80,11 +80,36 @@ describe('SupplyTable', () => {
   test('displays current clean herb supply from inputs', () => {
     const inputs: CalculatorInputs = {
       ...emptyInputs,
-      herbSupply: new Map([['clean_torstol', { cleanQty: 42, grimyQty: 0 }]]),
+      herbSupply: new Map([['clean_torstol', { cleanQty: 42, grimyQty: 0, unfQty: 0 }]]),
     }
     renderComponent(inputs)
     const cleanInputs = screen.getAllByLabelText('Clean') as HTMLInputElement[]
     expect(cleanInputs.some(el => el.value === '42')).toBe(true)
+  })
+
+  test('renders Unf column for every herb', () => {
+    renderComponent()
+    const unfInputs = screen.getAllByLabelText('Unf')
+    expect(unfInputs.length).toBeGreaterThan(5)
+  })
+
+  test('emits setHerbUnf with correct herb and qty', async () => {
+    const { emitted } = renderComponent()
+    const unfInputs = screen.getAllByLabelText('Unf') as HTMLInputElement[]
+    await fireEvent.update(unfInputs[0], '8')
+    const events = emitted()['setHerbUnf']
+    expect(events).toBeDefined()
+    expect(events?.[0]?.[1]).toBe(8)
+  })
+
+  test('displays current unf herb supply from inputs', () => {
+    const inputs: CalculatorInputs = {
+      ...emptyInputs,
+      herbSupply: new Map([['clean_torstol', { cleanQty: 0, grimyQty: 0, unfQty: 17 }]]),
+    }
+    renderComponent(inputs)
+    const unfInputs = screen.getAllByLabelText('Unf') as HTMLInputElement[]
+    expect(unfInputs.some(el => el.value === '17')).toBe(true)
   })
 
   test('emits setPotionThreeDose when 3-dose input changes', async () => {

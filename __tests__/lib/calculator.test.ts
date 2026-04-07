@@ -119,7 +119,7 @@ describe('Supply deduction', () => {
   test('herb supply reduces stillNeeded', () => {
     const inputs: CalculatorInputs = {
       ...emptyInputs(96),
-      herbSupply: new Map([['clean_torstol', { cleanQty: 1, grimyQty: 0 }]]),
+      herbSupply: new Map([['clean_torstol', { cleanQty: 1, grimyQty: 0, unfQty: 0 }]]),
     }
     const result = calc(inputs, 'overload', 1)
     const torstol = result.ingredients.find(i => i.id === 'clean_torstol')
@@ -130,7 +130,7 @@ describe('Supply deduction', () => {
   test('grimy herbs count toward supply', () => {
     const inputs: CalculatorInputs = {
       ...emptyInputs(96),
-      herbSupply: new Map([['clean_torstol', { cleanQty: 0, grimyQty: 1 }]]),
+      herbSupply: new Map([['clean_torstol', { cleanQty: 0, grimyQty: 1, unfQty: 0 }]]),
     }
     const result = calc(inputs, 'overload', 1)
     const torstol = result.ingredients.find(i => i.id === 'clean_torstol')
@@ -151,7 +151,7 @@ describe('Supply deduction', () => {
   test('partial supply shows correct deficit', () => {
     const inputs: CalculatorInputs = {
       ...emptyInputs(96),
-      herbSupply: new Map([['clean_torstol', { cleanQty: 3, grimyQty: 0 }]]),
+      herbSupply: new Map([['clean_torstol', { cleanQty: 3, grimyQty: 0, unfQty: 0 }]]),
     }
     const result = calc(inputs, 'overload', 10)
     const torstol = result.ingredients.find(i => i.id === 'clean_torstol')
@@ -613,5 +613,180 @@ describe('Craft steps', () => {
     expect(iritInput).toBeDefined()
     // scroll should reduce qty below rawQty for saveable inputs
     expect(iritInput!.qty).toBeLessThan(iritInput!.rawQty)
+  })
+})
+
+// ─── Unfinished potion supply ─────────────────────────────────────────────────
+//
+// super_attack (twoStepMix): vial_of_water + clean_irit → unf_irit, then + eye_of_newt → potion
+//
+// With N crafts and U unfinished potions in supply:
+//   step1Crafts = N − U   (vial + herb only needed for these)
+//   secondary always needed for all N crafts
+//   scroll of cleansing (multiplier 0.9) applies independently per step
+
+describe('Unf supply — partial (10 super attacks, 3 unf irit)', () => {
+  const inputs: CalculatorInputs = {
+    ...emptyInputs(45),
+    herbSupply: new Map([['clean_irit', { cleanQty: 0, grimyQty: 0, unfQty: 3 }]]),
+  }
+  const result = calc(inputs, 'super_attack', 10)
+
+  test('vial_of_water reduced to 7 (step1Crafts = 10 − 3)', () => {
+    expect(qty(result, 'vial_of_water')).toBe(7)
+  })
+
+  test('clean_irit reduced to 7', () => {
+    expect(qty(result, 'clean_irit')).toBe(7)
+  })
+
+  test('eye_of_newt unchanged at 10 (secondary always needed)', () => {
+    expect(qty(result, 'eye_of_newt')).toBe(10)
+  })
+
+  test('unfStep.crafts = 7, fromSupply = 3', () => {
+    const step = result.steps.find(s => s.potionId === 'super_attack')
+    expect(step?.unfStep?.crafts).toBe(7)
+    expect(step?.unfStep?.fromSupply).toBe(3)
+  })
+
+  test('unfStep.herbName is set', () => {
+    const step = result.steps.find(s => s.potionId === 'super_attack')
+    expect(step?.unfStep?.herbName).toBeTruthy()
+  })
+
+  test('step inputs: vial qty = 7', () => {
+    const step = result.steps.find(s => s.potionId === 'super_attack')
+    const vialInput = step?.inputs.find(i => i.id === 'vial_of_water')
+    expect(vialInput?.qty).toBe(7)
+  })
+
+  test('step inputs: eye_of_newt qty = 10', () => {
+    const step = result.steps.find(s => s.potionId === 'super_attack')
+    const eyeInput = step?.inputs.find(i => i.id === 'eye_of_newt')
+    expect(eyeInput?.qty).toBe(10)
+  })
+
+  test('step inputs: unfinished_potion entry inserted after herb with qty = 3', () => {
+    const step = result.steps.find(s => s.potionId === 'super_attack')
+    const unfEntry = step?.inputs.find(i => i.kind === 'unfinished_potion')
+    expect(unfEntry).toBeDefined()
+    expect(unfEntry?.id).toBe('clean_irit')   // same id as the herb
+    expect(unfEntry?.qty).toBe(3)
+    expect(unfEntry?.name).toMatch(/unf/i)
+    // positioned after herb, before secondary
+    const herbIdx = step!.inputs.findIndex(i => i.kind === 'herb_clean')
+    const unfIdx  = step!.inputs.findIndex(i => i.kind === 'unfinished_potion')
+    const eyeIdx  = step!.inputs.findIndex(i => i.id === 'eye_of_newt')
+    expect(unfIdx).toBe(herbIdx + 1)
+    expect(unfIdx).toBeLessThan(eyeIdx)
+  })
+})
+
+describe('Unf supply — full coverage (10 super attacks, 10 unf irit)', () => {
+  const inputs: CalculatorInputs = {
+    ...emptyInputs(45),
+    herbSupply: new Map([['clean_irit', { cleanQty: 0, grimyQty: 0, unfQty: 10 }]]),
+  }
+  const result = calc(inputs, 'super_attack', 10)
+
+  test('vial_of_water required = 0 (all covered by unf supply)', () => {
+    expect(qty(result, 'vial_of_water')).toBe(0)
+  })
+
+  test('clean_irit required = 0', () => {
+    expect(qty(result, 'clean_irit')).toBe(0)
+  })
+
+  test('eye_of_newt still required = 10', () => {
+    expect(qty(result, 'eye_of_newt')).toBe(10)
+  })
+
+  test('unfStep.crafts = 0, fromSupply = 10', () => {
+    const step = result.steps.find(s => s.potionId === 'super_attack')
+    expect(step?.unfStep?.crafts).toBe(0)
+    expect(step?.unfStep?.fromSupply).toBe(10)
+  })
+})
+
+describe('Unf supply — no unf in supply (unfStep still present, all crafted)', () => {
+  const result = calc(emptyInputs(45), 'super_attack', 10)
+
+  test('unfStep present on twoStepMix step', () => {
+    const step = result.steps.find(s => s.potionId === 'super_attack')
+    expect(step?.unfStep).toBeDefined()
+  })
+
+  test('unfStep.crafts = 10, fromSupply = 0', () => {
+    const step = result.steps.find(s => s.potionId === 'super_attack')
+    expect(step?.unfStep?.crafts).toBe(10)
+    expect(step?.unfStep?.fromSupply).toBe(0)
+  })
+
+  test('vial and herb totals unchanged (10 each)', () => {
+    expect(qty(result, 'vial_of_water')).toBe(10)
+    expect(qty(result, 'clean_irit')).toBe(10)
+    expect(qty(result, 'eye_of_newt')).toBe(10)
+  })
+})
+
+// Scroll of cleansing with unf supply:
+//   step1Crafts = 70 (100 − 30 unf)
+//   vial: not scrollable → 70
+//   clean_irit: scrollable, base = step1Crafts → ceil(70 × 0.9) = ceil(63) = 63
+//   eye_of_newt: scrollable, base = craftsToExecute → ceil(100 × 0.9) = 90
+describe('Unf supply + Scroll of Cleansing (100 super attacks, 30 unf irit)', () => {
+  const inputs: CalculatorInputs = {
+    ...emptyInputs(45),
+    scrollOfCleansing: true,
+    herbSupply: new Map([['clean_irit', { cleanQty: 0, grimyQty: 0, unfQty: 30 }]]),
+  }
+  const result = calc(inputs, 'super_attack', 100)
+
+  test('vial_of_water = 70 (step1Crafts, not scrollable)', () => {
+    expect(qty(result, 'vial_of_water')).toBe(70)
+  })
+
+  test('clean_irit = 63 (scroll on step1Crafts: ceil(70 × 0.9))', () => {
+    expect(qty(result, 'clean_irit')).toBe(63)
+  })
+
+  test('eye_of_newt = 90 (scroll on all crafts: ceil(100 × 0.9))', () => {
+    expect(qty(result, 'eye_of_newt')).toBe(90)
+  })
+
+  test('step inputs match: vial qty = 70, irit qty = 63, eye qty = 90', () => {
+    const step = result.steps.find(s => s.potionId === 'super_attack')
+    expect(step?.inputs.find(i => i.id === 'vial_of_water')?.qty).toBe(70)
+    expect(step?.inputs.find(i => i.id === 'clean_irit')?.qty).toBe(63)
+    expect(step?.inputs.find(i => i.id === 'eye_of_newt')?.qty).toBe(90)
+  })
+
+  test('scroll savings visible: irit rawQty = 70, qty = 63', () => {
+    const step = result.steps.find(s => s.potionId === 'super_attack')
+    const iritInput = step?.inputs.find(i => i.id === 'clean_irit')
+    expect(iritInput?.rawQty).toBe(70)
+    expect(iritInput?.qty).toBe(63)
+  })
+})
+
+describe('Non-twoStepMix recipes unaffected by unfQty', () => {
+  // overload is not twoStepMix; its extreme sub-recipes are not either
+  test('unfStep is absent on overload step', () => {
+    const result = calc(emptyInputs(96), 'overload', 1)
+    const overloadStep = result.steps.find(s => s.potionId === 'overload')
+    expect(overloadStep?.unfStep).toBeUndefined()
+  })
+
+  test('unf pool for a different herb does not bleed into unrelated recipe', () => {
+    // supply irit (unf) while crafting super_strength (uses kwuarm)
+    const inputs: CalculatorInputs = {
+      ...emptyInputs(55),
+      herbSupply: new Map([['clean_irit', { cleanQty: 0, grimyQty: 0, unfQty: 5 }]]),
+    }
+    const result = calc(inputs, 'super_strength', 10)
+    // clean_kwuarm should be 10 (unf irit doesn't help here)
+    expect(qty(result, 'clean_kwuarm')).toBe(10)
+    expect(qty(result, 'vial_of_water')).toBe(10)
   })
 })

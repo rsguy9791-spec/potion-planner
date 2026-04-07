@@ -33,4 +33,8 @@ export interface ResolveState {
   craftOrder: IngredientId[]
   /** Tracks actual scroll-adjusted consumption of each potion at a dose ≠ its native outputDose. */
   decantConsumed: Map<IngredientId, { targetDose: PotionDose; count: number }>
+  /** Available unfinished potions, keyed by clean herb id. */
+  unfPool: Map<IngredientId, number>
+  /** Unfinished potions consumed from supply per recipe id (twoStepMix recipes only). */
+  unfConsumed: Map<IngredientId, number>
 }

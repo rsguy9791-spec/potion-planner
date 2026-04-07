@@ -57,6 +57,7 @@
               :inputs="inputs"
               @set-herb-clean="setHerbClean"
               @set-herb-grimy="setHerbGrimy"
+              @set-herb-unf="setHerbUnf"
               @set-item-qty="setItemQty"
               @set-potion-three-dose="setPotionThreeDose"
               @set-potion-four-dose="setPotionFourDose"
@@ -104,6 +105,7 @@ const {
   setTargetQty,
   setHerbClean,
   setHerbGrimy,
+  setHerbUnf,
   setItemQty,
   setPotionThreeDose,
   setPotionFourDose,

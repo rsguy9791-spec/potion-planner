@@ -59,6 +59,7 @@ export function buildSteps(
   craftOrder: IngredientId[],
   decantConsumed: Map<IngredientId, { targetDose: PotionDose; count: number }>,
   scrollOfCleansing: boolean,
+  unfConsumed: Map<IngredientId, number>,
 ): CraftStep[] {
   const crafted = new Set(craftCounts.keys())
   const decantMap = new Map<IngredientId, { dose: PotionDose; count: number }>()
@@ -72,11 +73,25 @@ export function buildSteps(
       const crafts = craftCounts.get(id)!
       const recipe = RECIPE_BY_ID.get(id)!
       const multiplier = cleansingMultiplier(recipe, scrollOfCleansing)
-      const inputs = recipe.inputs.map((inp, index) => {
+      const fromSupply = unfConsumed.get(id) ?? 0
+      const step1Crafts = recipe.twoStepMix ? crafts - fromSupply : crafts
+
+      // For twoStepMix recipes, identify the herb so we can insert the unf-from-supply
+      // entry immediately after it in one forward pass (no post-hoc mutation).
+      const herbRecipeInput = recipe.twoStepMix
+        ? recipe.inputs.find(i => i.kind === 'herb_clean')
+        : undefined
+      const herbName = herbRecipeInput
+        ? (INGREDIENT_MAP.get(herbRecipeInput.id)?.name ?? herbRecipeInput.id)
+        : ''
+
+      const inputs = recipe.inputs.flatMap((inp, index) => {
         const name = INGREDIENT_MAP.get(inp.id)?.name ?? RECIPE_BY_ID.get(inp.id)?.name ?? inp.id
-        const rawQty = crafts * inp.qty
+        const isStep1Input = recipe.twoStepMix && (inp.kind === 'vial' || inp.kind === 'herb_clean')
+        const craftsBase = isStep1Input ? step1Crafts : crafts
+        const rawQty = craftsBase * inp.qty
         const saveable = scrollOfCleansing && isCleansingSaveable(inp, index)
-        const qty = saveable ? Math.ceil(crafts * multiplier) * inp.qty : rawQty
+        const qty = saveable ? Math.ceil(craftsBase * multiplier) * inp.qty : rawQty
 
         let decantFrom: { fromDose: PotionDose; fromCount: number } | undefined
         if (inp.kind === 'potion' && inp.dose) {
@@ -92,9 +107,18 @@ export function buildSteps(
           }
         }
 
-        return { id: inp.id, name, qty, rawQty, dose: inp.dose, ...(decantFrom ? { decantFrom } : {}) }
+        const entry = { id: inp.id, name, kind: inp.kind, qty, rawQty, dose: inp.dose, ...(decantFrom ? { decantFrom } : {}) }
+
+        // After the herb, emit the unf-from-supply entry (if any) so it sits naturally
+        // between the step-1 inputs (vial + herb) and the step-2 secondary.
+        if (inp.kind === 'herb_clean' && fromSupply > 0) {
+          return [entry, { id: inp.id, name: `${herbName} (unf)`, kind: 'unfinished_potion' as const, qty: fromSupply, rawQty: fromSupply }]
+        }
+
+        return [entry]
       })
-      return {
+
+      const step: CraftStep = {
         potionId: id,
         name: recipe.name,
         category: recipe.category,
@@ -102,5 +126,11 @@ export function buildSteps(
         outputDose: recipe.outputDose,
         inputs,
       }
+
+      if (recipe.twoStepMix) {
+        step.unfStep = { crafts: step1Crafts, fromSupply, herbName }
+      }
+
+      return step
     })
 }

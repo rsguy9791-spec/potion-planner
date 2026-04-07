@@ -80,9 +80,12 @@
                 {{ step.name }}
                 <span class="text-caption text-medium-emphasis">({{ step.outputDose }}-dose)</span>
               </div>
+              <div v-if="step.unfStep && step.unfStep.crafts > 0" class="text-caption ml-4 text-medium-emphasis">
+                ↳ {{ step.unfStep.crafts.toLocaleString() }} × {{ step.unfStep.herbName }} (unf)
+              </div>
               <div class="text-caption text-medium-emphasis ml-4 mt-1">
                 <ul class="pa-0 ma-0" style="list-style-type: none">
-                  <li v-for="(inp, j) in step.inputs" :key="inp.id">
+                  <li v-for="inp in step.inputs" :key="inp.kind + '-' + inp.id">
                     {{ inp.qty.toLocaleString() }}<template v-if="inp.rawQty !== inp.qty"> (<span
                         class="text-success">+{{ (inp.rawQty - inp.qty).toLocaleString() }} <v-icon icon="mdi-leaf"
                           size="x-small" /></span>)</template>
@@ -90,7 +93,7 @@
                       }}-dose)</template><template v-if="inp.decantFrom"> <span
                         style="color: rgb(var(--v-theme-info))"><v-icon icon="mdi-transfer" size="x-small"
                           class="ml-1" />{{ inp.decantFrom.fromCount.toLocaleString() }} {{ inp.decantFrom.fromDose
-                          }}-dose</span></template><template v-if="j < step.inputs.length - 1"></template>
+                          }}-dose</span></template>
                   </li>
                 </ul>
               </div>
