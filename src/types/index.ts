@@ -14,6 +14,7 @@ export type IngredientKind =
   | 'misc'
 
 export type PotionCategory =
+  | 'unfinished'
   | 'regular'
   | 'super'
   | 'extreme'
@@ -24,6 +25,33 @@ export type PotionCategory =
   | 'powerbursts'
 
 export type SecondaryMode = 'default' | 'use_available' | 'skip'
+
+export interface PerksConfiguration {
+  scrollOfCleansing: boolean
+  factoryOutfit: boolean
+  modifiedBotanistMask: boolean
+  portableWell: boolean
+  broochOfTheGods: boolean
+  /** 0–6 — additive XP % from clan fealty rank. */
+  clanFealtyPercent: number
+  /** 0–6 — additive XP % from botanist's outfit pieces (1% per piece, 6% at full 5-piece set). */
+  botanistXpPercent: number
+  perfectJujuPotion: boolean
+  /** 0–∞ — additive XP % from other sources. */
+  customXpPercent: number
+}
+
+export const DEFAULT_CONFIG: PerksConfiguration = {
+  scrollOfCleansing: false,
+  factoryOutfit: false,
+  modifiedBotanistMask: false,
+  portableWell: false,
+  broochOfTheGods: false,
+  clanFealtyPercent: 0,
+  botanistXpPercent: 0,
+  perfectJujuPotion: false,
+  customXpPercent: 0,
+}
 
 export interface RecipeIngredient {
   id: IngredientId
@@ -47,20 +75,15 @@ export interface Recipe {
   category: PotionCategory
   /** Whether the output potion can be bought on the Grand Exchange. Defaults to true. */
   tradeable?: boolean
-  /**
-   * True for standard 3-dose potions that are mixed in two discrete steps:
-   *   1. vial/base + herb → unfinished potion  (10% chance to save herb)
-   *   2. unfinished + secondary → finished potion  (10% chance to save secondary)
-   * Each saveable ingredient gets an independent 10% roll instead of the shared 10%/N formula.
-   */
-  twoStepMix?: boolean
+  /** XP gained per craft execution. 0 for unfinished-potion recipes. */
+  xpPerCraft: number
 }
 
 export interface IngredientDef {
   id: IngredientId
   name: string
   kind: IngredientKind
-  /** For herbs: the paired herb id (clean ↔ grimy) */
+  /** For herbs: the paired herb id (clean ↔ grimy). For unfinished potions: the herb id that produces this unf. */
   pairedHerbId?: IngredientId
   /** Whether this ingredient can be bought on the Grand Exchange. Defaults to true. */
   tradeable?: boolean
@@ -96,8 +119,7 @@ export interface CalculatorInputs {
    * When absent the calculator uses the highest unlocked tier as before.
    */
   preferredRecipeTier: Map<RecipeGroup, IngredientId>
-  /** Whether the player has the Scroll of Cleansing unlocked. */
-  scrollOfCleansing: boolean
+  perks: PerksConfiguration
 }
 
 export interface TargetPotion {
@@ -122,6 +144,8 @@ export interface CraftStep {
   potionId: IngredientId
   name: string
   category: PotionCategory
+  /** Whether this is an unfinished-potion step or a regular finishing step. */
+  stepKind: 'potion' | 'unfinished'
   /** Number of recipe executions (= number of output potions produced) */
   crafts: number
   outputDose: PotionDose
@@ -140,18 +164,8 @@ export interface CraftStep {
      */
     decantFrom?: { fromDose: PotionDose; fromCount: number }
   }>
-  /**
-   * Present on twoStepMix recipes. Describes the "make unfinished potion" sub-step
-   * that precedes adding the secondary ingredient.
-   */
-  unfStep?: {
-    /** Unfinished potions to make from scratch (= crafts − fromSupply). */
-    crafts: number
-    /** Unfinished potions consumed from the user's supply. */
-    fromSupply: number
-    /** Display name of the herb, e.g. "Irit leaf". */
-    herbName: string
-  }
+  /** XP gained in this step (post-boost). 0 for unfinished-potion steps. */
+  xpGained: number
 }
 
 export interface ShortfallItem {

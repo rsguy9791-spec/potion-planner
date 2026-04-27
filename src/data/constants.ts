@@ -20,6 +20,7 @@ export const CATEGORY_LABELS: Record<PotionCategory, string> = {
   renewals:     'Renewals',
   super:        'Super',
   regular:      'Regular',
+  unfinished:   'Unfinished',
 }
 
 export const POPULAR_POTION_IDS: readonly string[] = [

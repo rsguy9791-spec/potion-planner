@@ -1,4 +1,4 @@
-import type { IngredientId, PotionDose, SecondaryMode, RecipeGroup } from '@/types'
+import type { IngredientId, PotionDose, SecondaryMode, RecipeGroup, PerksConfiguration } from '@/types'
 
 export type DosePool = Map<IngredientId, number>
 
@@ -18,7 +18,7 @@ export interface ResolveConfig {
   secondaryModes: Map<IngredientId, SecondaryMode>
   disabledRecipes: Set<IngredientId>
   preferredTier: Map<RecipeGroup, IngredientId>
-  scrollOfCleansing: boolean
+  perks: PerksConfiguration
 }
 
 /** Mutable working state and output collectors, written throughout traversal. */
@@ -33,8 +33,4 @@ export interface ResolveState {
   craftOrder: IngredientId[]
   /** Tracks actual scroll-adjusted consumption of each potion at a dose ≠ its native outputDose. */
   decantConsumed: Map<IngredientId, { targetDose: PotionDose; count: number }>
-  /** Available unfinished potions, keyed by clean herb id. */
-  unfPool: Map<IngredientId, number>
-  /** Unfinished potions consumed from supply per recipe id (twoStepMix recipes only). */
-  unfConsumed: Map<IngredientId, number>
 }

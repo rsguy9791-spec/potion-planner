@@ -1,5 +1,5 @@
 import type { IngredientId, PotionDose, CalculatorInputs, Recipe } from '@/types'
-import { RECIPE_BY_ID, selectBestRecipe } from '@/data/recipes'
+import { RECIPE_BY_ID, selectBestRecipe, UNF_BY_HERB } from '@/data/recipes'
 import { accAdd, type Accumulator, type DosePool, type ResolveConfig, type ResolveState } from './types'
 import { cleansingMultiplier, isCleansingSaveable } from './scroll'
 
@@ -22,13 +22,11 @@ export function buildDosePool(inputs: CalculatorInputs): DosePool {
   for (const [id, supply] of inputs.potionSupply) {
     pool.set(id, totalDoses(supply))
   }
-  return pool
-}
-
-export function buildUnfPool(inputs: CalculatorInputs): Map<IngredientId, number> {
-  const pool = new Map<IngredientId, number>()
+  // Seed unfinished-potion supply from herbSupply.unfQty via UNF_BY_HERB mapping
   for (const [herbId, supply] of inputs.herbSupply) {
-    if (supply.unfQty > 0) pool.set(herbId, supply.unfQty)
+    if (supply.unfQty <= 0) continue
+    const unfId = UNF_BY_HERB.get(herbId)
+    if (unfId) pool.set(unfId, (pool.get(unfId) ?? 0) + supply.unfQty)
   }
   return pool
 }
@@ -59,7 +57,7 @@ function computeCraftLimits(
   config: ResolveConfig,
   state: ResolveState,
 ): { craftsToExecute: number; craftsToBuy: number } | null {
-  const nonPotionInputs = recipe.inputs.filter(inp => inp.kind !== 'potion')
+  const nonPotionInputs = recipe.inputs.filter(inp => inp.kind !== 'potion' && inp.kind !== 'unfinished_potion')
 
   if (nonPotionInputs.some(inp => config.secondaryModes.get(inp.id) === 'skip')) {
     return null
@@ -81,37 +79,15 @@ function recurseInputs(
   config: ResolveConfig,
   state: ResolveState,
 ): void {
-  const multiplier = cleansingMultiplier(recipe, config.scrollOfCleansing)
-
-  // For twoStepMix recipes, consume unfinished potions from supply to reduce
-  // the number of vial+herb mixes needed (step 1). The secondary (step 2) is
-  // still required for all crafts.
-  let step1Crafts = craftsToExecute
-  if (recipe.twoStepMix) {
-    const herbInput = recipe.inputs.find(i => i.kind === 'herb')
-    if (herbInput) {
-      const unfAvailable = state.unfPool.get(herbInput.id) ?? 0
-      const unfUsed = Math.min(unfAvailable, craftsToExecute)
-      if (unfUsed > 0) {
-        state.unfPool.set(herbInput.id, unfAvailable - unfUsed)
-        state.unfConsumed.set(recipe.id, (state.unfConsumed.get(recipe.id) ?? 0) + unfUsed)
-        step1Crafts = craftsToExecute - unfUsed
-      }
-    }
-  }
+  const multiplier = cleansingMultiplier(recipe, config.perks.scrollOfCleansing)
 
   state.visiting.add(recipe.id)
   for (const [index, input] of recipe.inputs.entries()) {
-    // Step 1 inputs (vial + herb) only needed for crafts not covered by unf supply.
-    // Step 2 inputs (secondary, potion bases) needed for all crafts.
-    const isStep1Input = recipe.twoStepMix && (input.kind === 'vial' || input.kind === 'herb')
-    const craftsBase = isStep1Input ? step1Crafts : craftsToExecute
+    if (input.kind === 'potion' || input.kind === 'unfinished_potion') {
+      const saveable = config.perks.scrollOfCleansing && isCleansingSaveable(input, index)
+      const effectiveCrafts = saveable ? Math.ceil(craftsToExecute * multiplier) : craftsToExecute
 
-    if (input.kind === 'potion') {
-      const saveable = config.scrollOfCleansing && isCleansingSaveable(input, index)
-      let effectiveCrafts = saveable ? Math.ceil(craftsBase * multiplier) : craftsBase
-
-      if (input.dose) {
+      if (input.kind === 'potion' && input.dose) {
         const childRecipe = RECIPE_BY_ID.get(input.id)
         if (childRecipe && input.dose !== childRecipe.outputDose) {
           // Track scroll-adjusted consumption at the non-native dose for decant display.
@@ -123,13 +99,15 @@ function recurseInputs(
         }
       }
 
-      resolveChain(input.id, input.dose!, effectiveCrafts * input.qty, config, state)
+      // Unfinished potions are always dose-1 single items
+      const requiredDose = input.dose ?? 1
+      resolveChain(input.id, requiredDose, effectiveCrafts * input.qty, config, state)
     } else {
-      const saveable = config.scrollOfCleansing && isCleansingSaveable(input, index)
+      const saveable = config.perks.scrollOfCleansing && isCleansingSaveable(input, index)
       const qty = saveable
-        ? Math.ceil(craftsBase * multiplier) * input.qty
-        : craftsBase * input.qty
-      const rawQty = craftsBase * input.qty
+        ? Math.ceil(craftsToExecute * multiplier) * input.qty
+        : craftsToExecute * input.qty
+      const rawQty = craftsToExecute * input.qty
       accAdd(state.accumulator, input.id, qty, rawQty)
     }
   }
@@ -169,8 +147,6 @@ export function resolveChain(
   if (config.disabledRecipes.has(recipe.id) || config.disabledRecipes.has(recipeKey)) {
     const stillNeeded = deductFromDosePool(id, qty, requiredDose, state)
     const n = stillNeeded > 0 ? Math.ceil(stillNeeded / requiredDose) : 0
-    // Always add to accumulator (even with 0) so the potion appears in the
-    // ingredients list when supply covers the need.
     accAdd(state.accumulator, id, n, n)
     return
   }
@@ -179,7 +155,21 @@ export function resolveChain(
   const dosesStillNeeded = deductFromDosePool(id, qty, requiredDose, state)
   if (dosesStillNeeded <= 0) return
 
-  const craftsNeeded = Math.ceil(dosesStillNeeded / recipe.outputDose)
+  let craftsNeeded = Math.ceil(dosesStillNeeded / recipe.outputDose)
+
+  // ── Factory outfit: effective output dose for 3-dose recipes ────────────────
+  const cfg = config.perks
+  if (cfg.factoryOutfit && recipe.outputDose === 3) {
+    craftsNeeded = Math.ceil(dosesStillNeeded / (3 + 1 / 8))
+  }
+
+  // ── Duplicate-potion bonuses ─────────────────────────────────────────────────
+  const maskExtra = cfg.modifiedBotanistMask ? 5 : 0
+  const wellExtra = cfg.portableWell ? (cfg.broochOfTheGods ? 10 : 5) : 0
+  const totalExtraPercent = maskExtra + wellExtra
+  if (totalExtraPercent > 0) {
+    craftsNeeded = Math.ceil(craftsNeeded / (1 + totalExtraPercent / 100))
+  }
 
   // ── Secondary mode handling ──────────────────────────────────────────────────
   const craftLimits = computeCraftLimits(recipe, craftsNeeded, config, state)
@@ -193,7 +183,7 @@ export function resolveChain(
 
   // Consume use_available secondary pool for crafts we will execute
   for (const inp of recipe.inputs) {
-    if (inp.kind === 'potion') continue
+    if (inp.kind === 'potion' || inp.kind === 'unfinished_potion') continue
     if (config.secondaryModes.get(inp.id) !== 'use_available') continue
     const available = state.secondaryPool.get(inp.id) ?? 0
     state.secondaryPool.set(inp.id, available - craftsToExecute * inp.qty)
@@ -203,10 +193,6 @@ export function resolveChain(
   if (craftsToExecute > 0) {
     recurseInputs(recipe, craftsToExecute, config, state)
 
-    // Post-order: record this craft after all inputs are resolved (children before parents).
-    // Use recipe.id (not id) so that tier-variant recipes are stored under their own key,
-    // allowing buildSteps to look up the correct recipe (e.g. elder_overload_salve_from_salve
-    // instead of the default elder_overload_salve when "From supreme salve" is selected).
     if (!state.craftCounts.has(recipe.id)) state.craftOrder.push(recipe.id)
     state.craftCounts.set(recipe.id, (state.craftCounts.get(recipe.id) ?? 0) + craftsToExecute)
   }
@@ -227,7 +213,5 @@ export function emptyResolveState(): ResolveState {
     craftCounts: new Map(),
     craftOrder: [],
     decantConsumed: new Map(),
-    unfPool: new Map(),
-    unfConsumed: new Map(),
   }
 }

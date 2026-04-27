@@ -1,5 +1,6 @@
 import { reactive, computed, watch } from 'vue'
-import type { CalculatorInputs, CalculationResult, HerbSupply, PotionSupply, TargetPotion, SecondaryMode } from '@/types'
+import type { CalculatorInputs, CalculationResult, HerbSupply, PotionSupply, TargetPotion, SecondaryMode, PerksConfiguration } from '@/types'
+import { DEFAULT_CONFIG } from '@/types'
 import { calculateAll } from '@/lib/calculator'
 import { RECIPES, RECIPE_GROUPS, INGREDIENT_MAP } from '@/data/recipes'
 
@@ -22,7 +23,7 @@ const inputs = reactive<CalculatorInputs>({
   secondaryModes: new Map(),
   disabledRecipes: new Set(),
   preferredRecipeTier: new Map(),
-  scrollOfCleansing: false,
+  perks: { ...DEFAULT_CONFIG },
 })
 
 const targets = reactive<TargetPotion[]>([{ potionId: '', qty: 1 }])
@@ -41,7 +42,7 @@ function serializeState() {
     secondaryModes: [...inputs.secondaryModes.entries()],
     disabledRecipes: [...inputs.disabledRecipes],
     preferredRecipeTier: [...inputs.preferredRecipeTier.entries()],
-    scrollOfCleansing: inputs.scrollOfCleansing,
+    config: inputs.perks,
     targets: [...targets],
   })
 }
@@ -66,7 +67,9 @@ function loadFromStorage() {
     inputs.secondaryModes = new Map(data.secondaryModes ?? [])
     inputs.disabledRecipes = new Set(data.disabledRecipes ?? [])
     inputs.preferredRecipeTier = new Map(data.preferredRecipeTier ?? [])
-    inputs.scrollOfCleansing = data.scrollOfCleansing ?? false
+    // Migrate old scrollOfCleansing boolean into config
+    const migratedScroll = !!data.scrollOfCleansing
+    inputs.perks = { ...DEFAULT_CONFIG, scrollOfCleansing: migratedScroll, ...(data.config ?? {}) }
     if (Array.isArray(data.targets) && data.targets.length > 0) {
       targets.splice(0, targets.length, ...data.targets)
     }
@@ -153,6 +156,10 @@ function setPreferredTier(groupKey: string, recipeId: string | null) {
   else inputs.preferredRecipeTier.delete(groupKey)
 }
 
+function setConfig(key: keyof PerksConfiguration, value: boolean | number) {
+  inputs.perks = { ...inputs.perks, [key]: value } as PerksConfiguration
+}
+
 function resetAll() {
   inputs.herbloreLevel = DEFAULT_LEVEL
   inputs.herbSupply = new Map()
@@ -161,7 +168,7 @@ function resetAll() {
   inputs.secondaryModes = new Map()
   inputs.disabledRecipes = new Set()
   inputs.preferredRecipeTier = new Map()
-  inputs.scrollOfCleansing = false
+  inputs.perks = { ...DEFAULT_CONFIG }
   targets.splice(0, targets.length)
   targets.push({ potionId: '', qty: 1 })
 }
@@ -183,9 +190,10 @@ function resetCategory(category: 'herbs' | 'secondaries' | 'potions' | 'vials') 
   }
 }
 
-/** All target-selectable recipes, filtered to the player's level */
+/** All target-selectable recipes, filtered to the player's level. Excludes unf recipes (xpPerCraft === 0). */
 const availableTargets = computed(() =>
   RECIPES.filter(r =>
+    r.xpPerCraft > 0 &&
     r.levelRequired <= inputs.herbloreLevel &&
     (!r.recipeGroup || RECIPE_GROUPS.get(r.recipeGroup)?.[0]?.id === r.id)
   )
@@ -211,6 +219,7 @@ export function useCalculator() {
     setSecondaryMode,
     toggleRecipe,
     setPreferredTier,
+    setConfig,
     resetAll,
     resetCategory,
   }

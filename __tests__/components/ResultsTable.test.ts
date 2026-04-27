@@ -1,11 +1,7 @@
 import { render, screen } from '@testing-library/vue'
-import { createVuetify } from 'vuetify'
-import * as components from 'vuetify/components'
-import * as directives from 'vuetify/directives'
 import ResultsTable from '@/components/ResultsTable.vue'
 import type { CalculationResult, CraftStep, IngredientResult } from '@/types'
-
-const vuetify = createVuetify({ components, directives })
+import { vuetifyStubs } from '../utils/stubs'
 
 function ing(overrides: Partial<IngredientResult> = {}): IngredientResult {
   return {
@@ -30,8 +26,10 @@ function makeStep(overrides: Partial<CraftStep> = {}): CraftStep {
     potionId: 'super_attack',
     name: 'Super attack',
     category: 'super',
+    stepKind: 'potion',
     crafts: 10,
     outputDose: 3,
+    xpGained: 0,
     inputs: [],
     ...overrides,
   }
@@ -40,7 +38,7 @@ function makeStep(overrides: Partial<CraftStep> = {}): CraftStep {
 function renderComponent(r: CalculationResult | null) {
   return render(ResultsTable, {
     props: { result: r },
-    global: { plugins: [vuetify] },
+    global: { stubs: vuetifyStubs },
   })
 }
 
@@ -114,61 +112,51 @@ describe('ResultsTable', () => {
   })
 })
 
-describe('ResultsTable — unf sub-step display', () => {
-  test('shows ↳ sub-step when crafts > 0', () => {
+describe('ResultsTable — step rendering', () => {
+  test('renders unfinished steps in their own group', () => {
     renderComponent(makeResult({
       targets: [{ name: 'Super attack', qty: 10 }],
-      steps: [makeStep({ unfStep: { crafts: 7, fromSupply: 3, herbName: 'Irit leaf' } })],
+      steps: [
+        makeStep({ potionId: 'irit_potion_unf', name: 'Irit potion (unf)', stepKind: 'unfinished', category: 'unfinished', outputDose: 1 }),
+        makeStep({ potionId: 'super_attack', name: 'Super attack', stepKind: 'potion', category: 'super' }),
+      ],
     }))
-    expect(screen.getByText(/↳.*7.*Irit leaf.*unf/i)).toBeInTheDocument()
+    expect(screen.getByText(/unfinished potions/i)).toBeInTheDocument()
+    expect(screen.getByText(/Irit potion \(unf\)/)).toBeInTheDocument()
   })
 
-  test('hides ↳ sub-step when all unfinished come from supply (crafts = 0)', () => {
+  test('shows XP for potion steps when xpGained > 0', () => {
     renderComponent(makeResult({
       targets: [{ name: 'Super attack', qty: 10 }],
-      steps: [makeStep({ unfStep: { crafts: 0, fromSupply: 10, herbName: 'Irit leaf' } })],
+      steps: [makeStep({ xpGained: 1000 })],
     }))
-    expect(screen.queryByText(/↳/)).not.toBeInTheDocument()
+    expect(screen.getAllByText(/XP:.*1,000/).length).toBeGreaterThanOrEqual(1)
   })
 
-  test('shows unf-from-supply as an ingredient line when present in inputs', () => {
+  test('hides XP line when xpGained is 0', () => {
     renderComponent(makeResult({
       targets: [{ name: 'Super attack', qty: 10 }],
-      steps: [makeStep({
-        inputs: [
-          { id: 'vial_of_water', name: 'Vial of water',  kind: 'vial',       qty: 7,  rawQty: 7 },
-          { id: 'clean_irit',    name: 'Irit leaf',       kind: 'herb', qty: 7,  rawQty: 7 },
-          { id: 'clean_irit',    name: 'Irit leaf (unf)', kind: 'unfinished_potion', qty: 3,  rawQty: 3 },
-          { id: 'eye_of_newt',   name: 'Eye of newt',     kind: 'secondary',  qty: 10, rawQty: 10 },
-        ],
-        unfStep: { crafts: 7, fromSupply: 3, herbName: 'Irit leaf' },
-      })],
+      steps: [makeStep({ xpGained: 0 })],
     }))
-    expect(screen.getByText('Irit leaf (unf)')).toBeInTheDocument()
+    expect(screen.queryByText(/XP:/)).not.toBeInTheDocument()
   })
 
-  test('no unf ingredient line when fromSupply = 0 (not injected into inputs)', () => {
-    renderComponent(makeResult({
-      targets: [{ name: 'Super attack', qty: 10 }],
-      steps: [makeStep({
-        inputs: [
-          { id: 'vial_of_water', name: 'Vial of water', kind: 'vial',       qty: 10, rawQty: 10 },
-          { id: 'clean_irit',    name: 'Irit leaf',      kind: 'herb', qty: 10, rawQty: 10 },
-          { id: 'eye_of_newt',   name: 'Eye of newt',    kind: 'secondary',  qty: 10, rawQty: 10 },
-        ],
-        unfStep: { crafts: 10, fromSupply: 0, herbName: 'Irit leaf' },
-      })],
-    }))
-    // No unfinished_potion entry in inputs → "Irit leaf (unf)" only appears in the ↳ sub-step div,
-    // not as a standalone ingredient name in the list.
-    expect(screen.queryByText('Irit leaf (unf)')).toBeNull()
-  })
-
-  test('does not show unf sub-step when unfStep is absent', () => {
+  test('shows total XP when any potion step has xpGained > 0', () => {
     renderComponent(makeResult({
       targets: [{ name: 'Overload', qty: 1 }],
-      steps: [makeStep({ potionId: 'overload', name: 'Overload', category: 'overload', unfStep: undefined })],
+      steps: [
+        makeStep({ potionId: 'super_attack', xpGained: 1000 }),
+        makeStep({ potionId: 'overload', xpGained: 1000 }),
+      ],
     }))
-    expect(screen.queryByText(/unf/i)).not.toBeInTheDocument()
+    expect(screen.getByText(/Total XP:/)).toBeInTheDocument()
+  })
+
+  test('does not show unfinished heading when no unf steps present', () => {
+    renderComponent(makeResult({
+      targets: [{ name: 'Overload', qty: 1 }],
+      steps: [makeStep({ potionId: 'overload', name: 'Overload', category: 'overload', stepKind: 'potion' })],
+    }))
+    expect(screen.queryByText(/unfinished potions/i)).not.toBeInTheDocument()
   })
 })

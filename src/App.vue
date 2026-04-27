@@ -5,18 +5,13 @@
       <v-spacer />
       <div class="d-flex align-center ga-2 mr-2">
         <LevelInput v-model="inputs.herbloreLevel" />
-        <v-checkbox
-          v-model="inputs.scrollOfCleansing"
-          label="Scroll"
-          hide-details
-          density="compact"
-          color="success"
-          class="flex-shrink-0"
+        <v-btn
+          variant="tonal" color="white" size="small"
+          prepend-icon="mdi-chevron-double-up"
+          @click="perksOpen = true"
         >
-          <template v-slot:append>
-            <v-icon size="small" :color="inputs.scrollOfCleansing ? 'success' : undefined">mdi-leaf</v-icon>
-          </template>
-        </v-checkbox>
+          Perks
+        </v-btn>
         <v-btn
           variant="tonal" color="white" size="small"
           prepend-icon="mdi-book-open-variant"
@@ -80,18 +75,20 @@
       </div>
     </v-main>
 
-    <RecipesSidebar v-model="sidebarOpen" />
+    <RecipesSidebar v-model="sidebarOpen" eager />
+    <PerksSidebar v-model="perksOpen" :config="inputs.perks" @update="setConfig" />
   </v-app>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import LevelInput from '@/components/LevelInput.vue'
 import TargetList from '@/components/TargetList.vue'
 import SupplyTable from '@/components/SupplyTable.vue'
 import ResultsTable from '@/components/ResultsTable.vue'
 import RecipesSidebar from '@/components/RecipesSidebar.vue'
 import SummaryBanner from '@/components/SummaryBanner.vue'
+import PerksSidebar from '@/components/PerksSidebar.vue'
 import { useCalculator } from '@/composables/useCalculator'
 
 const {
@@ -112,9 +109,14 @@ const {
   setPotionSixDose,
   resetAll,
   resetCategory,
+  setConfig,
 } = useCalculator()
 
 const sidebarOpen = ref(false)
+const perksOpen = ref(false)
+
+watch(sidebarOpen, v => { if (v) perksOpen.value = false })
+watch(perksOpen, v => { if (v) sidebarOpen.value = false })
 
 function onUpdateHave(id: string, kind: string, value: number) {
   if (kind === 'herb') {

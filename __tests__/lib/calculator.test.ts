@@ -1,5 +1,7 @@
 import { calculateAll, getIngredientList } from '@/lib/calculator'
-import type { CalculatorInputs, TargetPotion } from '@/types'
+import type { CalculatorInputs, TargetPotion, PerksConfiguration } from '@/types'
+import { DEFAULT_CONFIG } from '@/types'
+import { RECIPES } from '@/data/recipes'
 
 function emptyInputs(level: number): CalculatorInputs {
   return {
@@ -10,8 +12,16 @@ function emptyInputs(level: number): CalculatorInputs {
     secondaryModes: new Map(),
     disabledRecipes: new Set(),
     preferredRecipeTier: new Map(),
-    scrollOfCleansing: false,
+    perks: { ...DEFAULT_CONFIG },
   }
+}
+
+function withScroll(inputs: CalculatorInputs): CalculatorInputs {
+  return { ...inputs, perks: { ...inputs.perks, scrollOfCleansing: true } }
+}
+
+function withPerks(inputs: CalculatorInputs, perks: Partial<PerksConfiguration>): CalculatorInputs {
+  return { ...inputs, perks: { ...inputs.perks, ...perks } }
 }
 
 function target(potionId: string, qty: number): TargetPotion[] {
@@ -412,7 +422,7 @@ describe('1000 Overloads — no scroll', () => {
 })
 
 describe('1000 Overloads — with scroll of cleansing', () => {
-  const inputs: CalculatorInputs = { ...emptyInputs(96), scrollOfCleansing: true }
+  const inputs = withScroll(emptyInputs(96))
   const result = calc(inputs, 'overload', 1000)
 
   test('vial_of_water: 5920', () => expect(qty(result, 'vial_of_water')).toBe(5920))
@@ -436,7 +446,7 @@ describe('1000 Overloads — with scroll of cleansing', () => {
 })
 
 describe('1000 Elder overloads — with scroll of cleansing', () => {
-  const inputs: CalculatorInputs = { ...emptyInputs(106), scrollOfCleansing: true }
+  const inputs = withScroll(emptyInputs(106))
   const result = calc(inputs, 'elder_overload', 1000)
 
   // Herbs
@@ -606,23 +616,25 @@ describe('Craft steps', () => {
   })
 
   test('step inputs reflect scroll savings when active', () => {
-    const inputs: CalculatorInputs = { ...emptyInputs(96), scrollOfCleansing: true }
+    const inputs = withScroll(emptyInputs(96))
     const result = calc(inputs, 'overload', 1000)
-    const superAttackStep = result.steps.find(s => s.potionId === 'super_attack')
-    const iritInput = superAttackStep?.inputs.find(i => i.id === 'clean_irit')
+    // clean_irit is in the irit_potion_unf step (split recipe model)
+    const unfStep = result.steps.find(s => s.potionId === 'irit_potion_unf')
+    const iritInput = unfStep?.inputs.find(i => i.id === 'clean_irit')
     expect(iritInput).toBeDefined()
-    // scroll should reduce qty below rawQty for saveable inputs
     expect(iritInput!.qty).toBeLessThan(iritInput!.rawQty)
   })
 })
 
 // ─── Unfinished potion supply ─────────────────────────────────────────────────
 //
-// super_attack (twoStepMix): vial_of_water + clean_irit → unf_irit, then + eye_of_newt → potion
+// super_attack uses a split-recipe model:
+//   irit_potion_unf recipe: vial_of_water + clean_irit → 1 unf (dose 1)
+//   super_attack recipe: irit_potion_unf (unfinished_potion) + eye_of_newt → 3-dose potion
 //
 // With N crafts and U unfinished potions in supply:
-//   step1Crafts = N − U   (vial + herb only needed for these)
-//   secondary always needed for all N crafts
+//   irit_potion_unf crafts = N − U  (vial + herb only needed for these)
+//   super_attack crafts = N
 //   scroll of cleansing (multiplier 0.9) applies independently per step
 
 describe('Unf supply — partial (10 super attacks, 3 unf irit)', () => {
@@ -632,7 +644,7 @@ describe('Unf supply — partial (10 super attacks, 3 unf irit)', () => {
   }
   const result = calc(inputs, 'super_attack', 10)
 
-  test('vial_of_water reduced to 7 (step1Crafts = 10 − 3)', () => {
+  test('vial_of_water reduced to 7 (irit_potion_unf crafts = 10 − 3)', () => {
     expect(qty(result, 'vial_of_water')).toBe(7)
   })
 
@@ -644,42 +656,31 @@ describe('Unf supply — partial (10 super attacks, 3 unf irit)', () => {
     expect(qty(result, 'eye_of_newt')).toBe(10)
   })
 
-  test('unfStep.crafts = 7, fromSupply = 3', () => {
-    const step = result.steps.find(s => s.potionId === 'super_attack')
-    expect(step?.unfStep?.crafts).toBe(7)
-    expect(step?.unfStep?.fromSupply).toBe(3)
+  test('irit_potion_unf step has crafts = 7 (3 from supply)', () => {
+    const unfStep = result.steps.find(s => s.potionId === 'irit_potion_unf')
+    expect(unfStep?.crafts).toBe(7)
   })
 
-  test('unfStep.herbName is set', () => {
-    const step = result.steps.find(s => s.potionId === 'super_attack')
-    expect(step?.unfStep?.herbName).toBeTruthy()
+  test('irit_potion_unf step has stepKind = "unfinished"', () => {
+    const unfStep = result.steps.find(s => s.potionId === 'irit_potion_unf')
+    expect(unfStep?.stepKind).toBe('unfinished')
   })
 
-  test('step inputs: vial qty = 7', () => {
-    const step = result.steps.find(s => s.potionId === 'super_attack')
-    const vialInput = step?.inputs.find(i => i.id === 'vial_of_water')
-    expect(vialInput?.qty).toBe(7)
+  test('irit_potion_unf step inputs: vial qty = 7', () => {
+    const unfStep = result.steps.find(s => s.potionId === 'irit_potion_unf')
+    expect(unfStep?.inputs.find(i => i.id === 'vial_of_water')?.qty).toBe(7)
   })
 
-  test('step inputs: eye_of_newt qty = 10', () => {
+  test('super_attack step inputs: eye_of_newt qty = 10', () => {
     const step = result.steps.find(s => s.potionId === 'super_attack')
-    const eyeInput = step?.inputs.find(i => i.id === 'eye_of_newt')
-    expect(eyeInput?.qty).toBe(10)
+    expect(step?.inputs.find(i => i.id === 'eye_of_newt')?.qty).toBe(10)
   })
 
-  test('step inputs: unfinished_potion entry inserted after herb with qty = 3', () => {
+  test('super_attack step inputs: irit_potion_unf qty = 10 (total needed)', () => {
     const step = result.steps.find(s => s.potionId === 'super_attack')
-    const unfEntry = step?.inputs.find(i => i.kind === 'unfinished_potion')
-    expect(unfEntry).toBeDefined()
-    expect(unfEntry?.id).toBe('clean_irit')   // same id as the herb
-    expect(unfEntry?.qty).toBe(3)
-    expect(unfEntry?.name).toMatch(/unf/i)
-    // positioned after herb, before secondary
-    const herbIdx = step!.inputs.findIndex(i => i.kind === 'herb')
-    const unfIdx  = step!.inputs.findIndex(i => i.kind === 'unfinished_potion')
-    const eyeIdx  = step!.inputs.findIndex(i => i.id === 'eye_of_newt')
-    expect(unfIdx).toBe(herbIdx + 1)
-    expect(unfIdx).toBeLessThan(eyeIdx)
+    const unfInput = step?.inputs.find(i => i.id === 'irit_potion_unf')
+    expect(unfInput?.kind).toBe('unfinished_potion')
+    expect(unfInput?.qty).toBe(10)
   })
 })
 
@@ -702,25 +703,23 @@ describe('Unf supply — full coverage (10 super attacks, 10 unf irit)', () => {
     expect(qty(result, 'eye_of_newt')).toBe(10)
   })
 
-  test('unfStep.crafts = 0, fromSupply = 10', () => {
-    const step = result.steps.find(s => s.potionId === 'super_attack')
-    expect(step?.unfStep?.crafts).toBe(0)
-    expect(step?.unfStep?.fromSupply).toBe(10)
+  test('irit_potion_unf step absent (all covered by supply)', () => {
+    const unfStep = result.steps.find(s => s.potionId === 'irit_potion_unf')
+    expect(unfStep).toBeUndefined()
   })
 })
 
-describe('Unf supply — no unf in supply (unfStep still present, all crafted)', () => {
+describe('Unf supply — no unf in supply (all crafted)', () => {
   const result = calc(emptyInputs(45), 'super_attack', 10)
 
-  test('unfStep present on twoStepMix step', () => {
-    const step = result.steps.find(s => s.potionId === 'super_attack')
-    expect(step?.unfStep).toBeDefined()
+  test('irit_potion_unf step present (all must be crafted)', () => {
+    const step = result.steps.find(s => s.potionId === 'irit_potion_unf')
+    expect(step).toBeDefined()
   })
 
-  test('unfStep.crafts = 10, fromSupply = 0', () => {
-    const step = result.steps.find(s => s.potionId === 'super_attack')
-    expect(step?.unfStep?.crafts).toBe(10)
-    expect(step?.unfStep?.fromSupply).toBe(0)
+  test('irit_potion_unf step has crafts = 10', () => {
+    const step = result.steps.find(s => s.potionId === 'irit_potion_unf')
+    expect(step?.crafts).toBe(10)
   })
 
   test('vial and herb totals unchanged (10 each)', () => {
@@ -730,63 +729,224 @@ describe('Unf supply — no unf in supply (unfStep still present, all crafted)',
   })
 })
 
-// Scroll of cleansing with unf supply:
-//   step1Crafts = 70 (100 − 30 unf)
-//   vial: not scrollable → 70
-//   clean_irit: scrollable, base = step1Crafts → ceil(70 × 0.9) = ceil(63) = 63
-//   eye_of_newt: scrollable, base = craftsToExecute → ceil(100 × 0.9) = 90
+// Scroll of cleansing with unf supply (split-recipe model):
+//   irit_potion_unf crafts = 70 (100 − 30 unf), saveableCount = 1 (clean_irit at idx 1)
+//     vial: not scrollable → 70
+//     clean_irit: scrollable → ceil(70 × 0.9) = 63
+//   super_attack crafts = 100, saveableCount = 1 (eye_of_newt at idx 1)
+//     eye_of_newt: scrollable → ceil(100 × 0.9) = 90
 describe('Unf supply + Scroll of Cleansing (100 super attacks, 30 unf irit)', () => {
   const inputs: CalculatorInputs = {
-    ...emptyInputs(45),
-    scrollOfCleansing: true,
+    ...withScroll(emptyInputs(45)),
     herbSupply: new Map([['clean_irit', { cleanQty: 0, grimyQty: 0, unfQty: 30 }]]),
   }
   const result = calc(inputs, 'super_attack', 100)
 
-  test('vial_of_water = 70 (step1Crafts, not scrollable)', () => {
+  test('vial_of_water = 70 (not scrollable)', () => {
     expect(qty(result, 'vial_of_water')).toBe(70)
   })
 
-  test('clean_irit = 63 (scroll on step1Crafts: ceil(70 × 0.9))', () => {
+  test('clean_irit = 63 (scroll on irit_potion_unf step: ceil(70 × 0.9))', () => {
     expect(qty(result, 'clean_irit')).toBe(63)
   })
 
-  test('eye_of_newt = 90 (scroll on all crafts: ceil(100 × 0.9))', () => {
+  test('eye_of_newt = 90 (scroll on super_attack step: ceil(100 × 0.9))', () => {
     expect(qty(result, 'eye_of_newt')).toBe(90)
   })
 
-  test('step inputs match: vial qty = 70, irit qty = 63, eye qty = 90', () => {
+  test('irit_potion_unf step inputs: vial=70, irit=63', () => {
+    const unfStep = result.steps.find(s => s.potionId === 'irit_potion_unf')
+    expect(unfStep?.inputs.find(i => i.id === 'vial_of_water')?.qty).toBe(70)
+    expect(unfStep?.inputs.find(i => i.id === 'clean_irit')?.qty).toBe(63)
+  })
+
+  test('super_attack step inputs: eye_of_newt = 90', () => {
     const step = result.steps.find(s => s.potionId === 'super_attack')
-    expect(step?.inputs.find(i => i.id === 'vial_of_water')?.qty).toBe(70)
-    expect(step?.inputs.find(i => i.id === 'clean_irit')?.qty).toBe(63)
     expect(step?.inputs.find(i => i.id === 'eye_of_newt')?.qty).toBe(90)
   })
 
-  test('scroll savings visible: irit rawQty = 70, qty = 63', () => {
-    const step = result.steps.find(s => s.potionId === 'super_attack')
-    const iritInput = step?.inputs.find(i => i.id === 'clean_irit')
+  test('scroll savings visible on irit_potion_unf step: irit rawQty=70, qty=63', () => {
+    const unfStep = result.steps.find(s => s.potionId === 'irit_potion_unf')
+    const iritInput = unfStep?.inputs.find(i => i.id === 'clean_irit')
     expect(iritInput?.rawQty).toBe(70)
     expect(iritInput?.qty).toBe(63)
   })
 })
 
-describe('Non-twoStepMix recipes unaffected by unfQty', () => {
-  // overload is not twoStepMix; its extreme sub-recipes are not either
-  test('unfStep is absent on overload step', () => {
+describe('Unf supply isolation', () => {
+  test('overload step does not produce torstol_potion_unf (uses clean_torstol directly)', () => {
     const result = calc(emptyInputs(96), 'overload', 1)
-    const overloadStep = result.steps.find(s => s.potionId === 'overload')
-    expect(overloadStep?.unfStep).toBeUndefined()
+    const torstolUnfStep = result.steps.find(s => s.potionId === 'torstol_potion_unf')
+    expect(torstolUnfStep).toBeUndefined()
   })
 
   test('unf pool for a different herb does not bleed into unrelated recipe', () => {
-    // supply irit (unf) while crafting super_strength (uses kwuarm)
     const inputs: CalculatorInputs = {
       ...emptyInputs(55),
       herbSupply: new Map([['clean_irit', { cleanQty: 0, grimyQty: 0, unfQty: 5 }]]),
     }
     const result = calc(inputs, 'super_strength', 10)
-    // clean_kwuarm should be 10 (unf irit doesn't help here)
     expect(qty(result, 'clean_kwuarm')).toBe(10)
     expect(qty(result, 'vial_of_water')).toBe(10)
+  })
+})
+
+// ─── Factory outfit perk ──────────────────────────────────────────────────────
+
+describe('factoryOutfit perk', () => {
+  // 100 super attacks = 300 doses needed.
+  // Without outfit: ceil(300/3) = 100 crafts.
+  // With outfit:    ceil(300/3.125) = 96 crafts → 96 irit_potion_unf needed → 96 herbs/vials.
+  const base = calc(emptyInputs(45), 'super_attack', 100)
+  const outfit = calc(withPerks(emptyInputs(45), { factoryOutfit: true }), 'super_attack', 100)
+
+  test('reduces finishing-step crafts for 3-dose recipes', () => {
+    expect(qty(base, 'eye_of_newt')).toBe(100)
+    expect(qty(outfit, 'eye_of_newt')).toBe(96)
+  })
+
+  test('reduces upstream unfinished-potion crafts accordingly', () => {
+    expect(qty(base, 'clean_irit')).toBe(100)
+    expect(qty(outfit, 'clean_irit')).toBe(96)
+    expect(qty(outfit, 'vial_of_water')).toBe(96)
+  })
+
+  test('does not reduce unfinished steps independently (outputDose=1)', () => {
+    // The unf step itself has outputDose=1, so outfit only helps via fewer crafts requested.
+    // Outfit-reduced finishing (96 crafts) requests 96 unf potions → 96 herbs — not further reduced.
+    expect(qty(outfit, 'clean_irit')).toBe(96)
+  })
+})
+
+// ─── Duplicate bonus perks ────────────────────────────────────────────────────
+
+describe('duplicate bonus perks', () => {
+  // 100 super attacks — all calculations at level 45.
+  //
+  // mask only (5%):
+  //   finishing: ceil(100/1.05)=96, 96 eye_of_newt
+  //   unf:       ceil(96/1.05)=92,  92 irit herbs + vials
+  //
+  // well only (5%): identical to mask
+  //
+  // well + brooch (10%):
+  //   finishing: ceil(100/1.10)=91, 91 eye_of_newt
+  //   unf:       ceil(91/1.10)=83,  83 irit herbs + vials
+  //
+  // mask + well (10%): same as well+brooch
+  //
+  // mask + well + brooch (15%):
+  //   finishing: ceil(100/1.15)=87, 87 eye_of_newt
+  //   unf:       ceil(87/1.15)=76,  76 irit herbs + vials
+
+  test('modifiedBotanistMask (5%) reduces finishing and unf-step crafts', () => {
+    const result = calc(withPerks(emptyInputs(45), { modifiedBotanistMask: true }), 'super_attack', 100)
+    expect(qty(result, 'eye_of_newt')).toBe(96)
+    expect(qty(result, 'clean_irit')).toBe(92)
+    expect(qty(result, 'vial_of_water')).toBe(92)
+  })
+
+  test('portableWell (5%) applies the same reduction as mask alone', () => {
+    const result = calc(withPerks(emptyInputs(45), { portableWell: true }), 'super_attack', 100)
+    expect(qty(result, 'eye_of_newt')).toBe(96)
+    expect(qty(result, 'clean_irit')).toBe(92)
+  })
+
+  test('broochOfTheGods upgrades well from 5% to 10%', () => {
+    const wellOnly = calc(withPerks(emptyInputs(45), { portableWell: true }), 'super_attack', 100)
+    const withBrooch = calc(withPerks(emptyInputs(45), { portableWell: true, broochOfTheGods: true }), 'super_attack', 100)
+    expect(qty(wellOnly, 'clean_irit')).toBe(92)
+    expect(qty(withBrooch, 'clean_irit')).toBe(83)
+    expect(qty(withBrooch, 'eye_of_newt')).toBe(91)
+  })
+
+  test('mask + well combined gives 10% total bonus', () => {
+    const result = calc(withPerks(emptyInputs(45), { modifiedBotanistMask: true, portableWell: true }), 'super_attack', 100)
+    expect(qty(result, 'clean_irit')).toBe(83)
+    expect(qty(result, 'eye_of_newt')).toBe(91)
+  })
+
+  test('mask + well + brooch gives 15% total bonus', () => {
+    const result = calc(withPerks(emptyInputs(45), { modifiedBotanistMask: true, portableWell: true, broochOfTheGods: true }), 'super_attack', 100)
+    expect(qty(result, 'clean_irit')).toBe(76)
+    expect(qty(result, 'eye_of_newt')).toBe(87)
+  })
+
+  test('brooch alone has no effect (requires portableWell)', () => {
+    const broochOnly = calc(withPerks(emptyInputs(45), { broochOfTheGods: true }), 'super_attack', 100)
+    expect(qty(broochOnly, 'clean_irit')).toBe(100)
+  })
+})
+
+// ─── XP calculation ───────────────────────────────────────────────────────────
+
+describe('XP calculation', () => {
+  test('unfinished potion steps always have 0 XP', () => {
+    const result = calc(emptyInputs(45), 'super_attack', 1)
+    const unfStep = result.steps.find(s => s.stepKind === 'unfinished')
+    expect(unfStep).toBeDefined()
+    expect(unfStep!.xpGained).toBe(0)
+  })
+
+  test('finishing potion steps have positive XP', () => {
+    const result = calc(emptyInputs(45), 'super_attack', 1)
+    const step = result.steps.find(s => s.potionId === 'super_attack')
+    expect(step!.xpGained).toBeGreaterThan(0)
+  })
+
+  test('XP scales with number of crafts', () => {
+    const one = calc(emptyInputs(45), 'super_attack', 1)
+    const ten = calc(emptyInputs(45), 'super_attack', 10)
+    const xp1 = one.steps.find(s => s.potionId === 'super_attack')!.xpGained
+    const xp10 = ten.steps.find(s => s.potionId === 'super_attack')!.xpGained
+    expect(xp10).toBe(xp1 * 10)
+  })
+
+  test('clanFealtyPercent boosts XP proportionally', () => {
+    const base = calc(emptyInputs(45), 'super_attack', 10)
+    const boosted = calc(withPerks(emptyInputs(45), { clanFealtyPercent: 10 }), 'super_attack', 10)
+    const baseXp = base.steps.find(s => s.potionId === 'super_attack')!.xpGained
+    const boostedXp = boosted.steps.find(s => s.potionId === 'super_attack')!.xpGained
+    expect(boostedXp).toBeGreaterThan(baseXp)
+    expect(boostedXp / baseXp).toBeCloseTo(1.1, 1)
+  })
+
+  test('botanistXpPercent boosts XP proportionally', () => {
+    const base = calc(emptyInputs(45), 'super_attack', 10)
+    const boosted = calc(withPerks(emptyInputs(45), { botanistXpPercent: 6 }), 'super_attack', 10)
+    const baseXp = base.steps.find(s => s.potionId === 'super_attack')!.xpGained
+    const boostedXp = boosted.steps.find(s => s.potionId === 'super_attack')!.xpGained
+    expect(boostedXp / baseXp).toBeCloseTo(1.06, 1)
+  })
+
+  test('multiple XP boosts are additive not multiplicative', () => {
+    const base = calc(emptyInputs(45), 'super_attack', 10)
+    const boosted = calc(withPerks(emptyInputs(45), { clanFealtyPercent: 3, botanistXpPercent: 6, customXpPercent: 1 }), 'super_attack', 10)
+    const baseXp = base.steps.find(s => s.potionId === 'super_attack')!.xpGained
+    const boostedXp = boosted.steps.find(s => s.potionId === 'super_attack')!.xpGained
+    expect(boostedXp / baseXp).toBeCloseTo(1.1, 1) // 3+6+1 = 10%
+  })
+
+  test('perfectJujuPotion adds 5% XP on combination steps only', () => {
+    const comboRecipe = RECIPES.find(r => r.category === 'combination' && r.xpPerCraft > 0)
+    if (!comboRecipe) return
+
+    const base = calc(emptyInputs(120), comboRecipe.id, 1)
+    const withJuju = calc(withPerks(emptyInputs(120), { perfectJujuPotion: true }), comboRecipe.id, 1)
+    const comboStep = base.steps.find(s => s.potionId === comboRecipe.id)
+    const comboStepJuju = withJuju.steps.find(s => s.potionId === comboRecipe.id)
+
+    if (comboStep && comboStepJuju) {
+      expect(comboStepJuju.xpGained).toBeGreaterThan(comboStep.xpGained)
+      expect(comboStepJuju.xpGained / comboStep.xpGained).toBeCloseTo(1.05, 1)
+    }
+  })
+
+  test('perfectJujuPotion has no effect on non-combination steps', () => {
+    const base = calc(emptyInputs(45), 'super_attack', 10)
+    const withJuju = calc(withPerks(emptyInputs(45), { perfectJujuPotion: true }), 'super_attack', 10)
+    const baseXp = base.steps.find(s => s.potionId === 'super_attack')!.xpGained
+    const jujuXp = withJuju.steps.find(s => s.potionId === 'super_attack')!.xpGained
+    expect(jujuXp).toBe(baseXp)
   })
 })

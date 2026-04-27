@@ -1,7 +1,8 @@
 import type { IngredientId, CalculatorInputs, IngredientResult, CalculationResult, TargetPotion, ShortfallItem } from '@/types'
+import { DEFAULT_CONFIG } from '@/types'
 import { RECIPE_BY_ID } from '@/data/recipes'
 import type { ResolveConfig } from './types'
-import { resolveChain, emptyResolveState, buildDosePool, buildSecondaryPool, buildUnfPool } from './resolution'
+import { resolveChain, emptyResolveState, buildDosePool, buildSecondaryPool } from './resolution'
 import { buildResults, buildSteps } from './builders'
 import { computeAchievability } from './achievability'
 
@@ -20,14 +21,13 @@ export function calculateAll(
     secondaryModes: inputs.secondaryModes,
     disabledRecipes: inputs.disabledRecipes,
     preferredTier: inputs.preferredRecipeTier,
-    scrollOfCleansing: inputs.scrollOfCleansing,
+    perks: inputs.perks,
   }
 
   const state = {
     ...emptyResolveState(),
     dosePool: buildDosePool(inputs),
     secondaryPool: buildSecondaryPool(inputs),
-    unfPool: buildUnfPool(inputs),
   }
 
   for (const target of activeTargets) {
@@ -49,7 +49,7 @@ export function calculateAll(
   return {
     targets: targetSummary,
     ingredients,
-    steps: buildSteps(state.craftCounts, state.craftOrder, state.decantConsumed, inputs.scrollOfCleansing, state.unfConsumed),
+    steps: buildSteps(state.craftCounts, state.craftOrder, state.decantConsumed, inputs.perks),
     shortfalls,
     achievability: computeAchievability(activeTargets, shortfalls, inputs),
   }
@@ -67,14 +67,14 @@ export function getIngredientList(
     secondaryModes: new Map(),
     disabledRecipes: new Set(),
     preferredRecipeTier: new Map(),
-    scrollOfCleansing: false,
+    perks: { ...DEFAULT_CONFIG },
   }
   const config: ResolveConfig = {
     level,
     secondaryModes: new Map(),
     disabledRecipes: new Set(),
     preferredTier: new Map(),
-    scrollOfCleansing: false,
+    perks: { ...DEFAULT_CONFIG },
   }
   const state = emptyResolveState()
   const recipe = RECIPE_BY_ID.get(targetPotionId)

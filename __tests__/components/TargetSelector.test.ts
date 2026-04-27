@@ -1,12 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/vue'
-import { createVuetify } from 'vuetify'
-import * as components from 'vuetify/components'
-import * as directives from 'vuetify/directives'
 import TargetList from '@/components/TargetList.vue'
 import { RECIPES } from '@/data/recipes'
 import type { Recipe, TargetPotion } from '@/types'
-
-const vuetify = createVuetify({ components, directives })
+import { vuetifyStubs } from '../utils/stubs'
 
 const allTargets: Recipe[] = RECIPES.filter(r =>
   r.category === 'overload' ||
@@ -30,7 +26,7 @@ function renderComponent(overrides: Partial<{
       availableTargets: allTargets,
       ...overrides,
     },
-    global: { plugins: [vuetify] },
+    global: { stubs: vuetifyStubs },
   })
 }
 

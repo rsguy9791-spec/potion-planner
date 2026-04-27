@@ -9,6 +9,13 @@
         <span v-for="(t, i) in result.targets" :key="i">
           {{ t.qty.toLocaleString() }}× {{ t.name }}<span v-if="i < result.targets.length - 1">, </span>
         </span>
+
+        <!-- Total XP -->
+        <div v-if="totalXp > 0" class="text-caption font-weight-medium mv-1"
+          style="color:rgb(var(--v-theme-secondary))">
+          Total XP: {{ totalXp.toLocaleString() }}
+        </div>
+
       </div>
 
       <div v-if="result.targets.length && !result.ingredients.length" class="text-medium-emphasis pa-4">
@@ -74,14 +81,37 @@
       <v-expansion-panels v-if="result.steps.length" v-model="stepsOpen" variant="accordion" elevation="2" class="mt-2">
         <v-expansion-panel value="steps" title="Crafting Steps">
           <v-expansion-panel-text class="pa-3">
-            <div v-for="(step, i) in sortedSteps" :key="step.potionId" class="mb-3">
+
+            <!-- Unfinished potions group -->
+            <template v-if="unfSteps.length">
+              <div class="text-overline text-medium-emphasis mb-1">Unfinished Potions</div>
+              <div v-for="step in unfSteps" :key="step.potionId" class="mb-2">
+                <div class="text-body-2 font-weight-medium">
+                  Make {{ step.crafts.toLocaleString() }} × {{ step.name }}
+                </div>
+                <div class="text-caption text-medium-emphasis ml-4 mt-1">
+                  <ul class="pa-0 ma-0" style="list-style-type: none">
+                    <li v-for="inp in step.inputs" :key="inp.kind + '-' + inp.id">
+                      {{ inp.qty.toLocaleString() }}<template v-if="inp.rawQty !== inp.qty"> (<span
+                          class="text-success">+{{ (inp.rawQty - inp.qty).toLocaleString() }} <v-icon icon="mdi-leaf"
+                            size="x-small" /></span>)</template> × <span class="text-high-emphasis">{{ inp.name
+                        }}</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <v-divider v-if="potionSteps.length" class="my-3" />
+            </template>
+
+            <!-- Potion steps group -->
+            <div v-for="(step, i) in potionSteps" :key="step.potionId" class="mb-3">
               <div class="text-body-2 font-weight-medium">
-                <span class="text-medium-emphasis"> {{ i + 1 }}.</span> Make {{ step.crafts.toLocaleString() }} ×
+                <span class="text-medium-emphasis">{{ i + 1 }}.</span> Make {{ step.crafts.toLocaleString() }} ×
                 {{ step.name }}
                 <span class="text-caption text-medium-emphasis">({{ step.outputDose }}-dose)</span>
-              </div>
-              <div v-if="step.unfStep && step.unfStep.crafts > 0" class="text-caption ml-4 text-medium-emphasis">
-                ↳ {{ step.unfStep.crafts.toLocaleString() }} × {{ step.unfStep.herbName }} (unf)
+                <span class="text-caption" v-if="step.xpGained > 0" style="color: rgb(var(--v-theme-primary))">
+                  XP: {{ step.xpGained.toLocaleString() }}
+                </span>
               </div>
               <div class="text-caption text-medium-emphasis ml-4 mt-1">
                 <ul class="pa-0 ma-0" style="list-style-type: none">
@@ -91,13 +121,15 @@
                           size="x-small" /></span>)</template>
                     × <span class="text-high-emphasis">{{ inp.name }}</span><template v-if="inp.dose"> ({{ inp.dose
                       }}-dose)</template><template v-if="inp.decantFrom"> <span
-                        style="color: rgb(var(--v-theme-info))"><v-icon icon="mdi-transfer" size="x-small"
+                        style="color: rgb(var(--v-theme-secondary))"><v-icon icon="mdi-transfer" size="x-small"
                           class="ml-1" />{{ inp.decantFrom.fromCount.toLocaleString() }} {{ inp.decantFrom.fromDose
                           }}-dose</span></template>
                   </li>
                 </ul>
+
               </div>
             </div>
+
           </v-expansion-panel-text>
         </v-expansion-panel>
       </v-expansion-panels>
@@ -120,12 +152,13 @@ const emit = defineEmits<{
 const KIND_GROUP: Record<string, string> = {
   herb: 'Herbs',
   secondary: 'Secondaries',
+  unfinished_potion: 'Unfinished Potions',
   potion: 'Potions',
   vial: 'Vials',
   misc: 'Vials',
 }
 
-const GROUP_ORDER = ['Herbs', 'Secondaries', 'Potions', 'Vials']
+const GROUP_ORDER = ['Herbs', 'Secondaries', 'Unfinished Potions', 'Potions', 'Vials']
 
 const grouped = computed(() => {
   if (!props.result) return {} as Record<string, IngredientResult[]>
@@ -143,14 +176,15 @@ const visibleGroups = computed(() =>
 )
 
 const STEP_TIER_RANK: Partial<Record<PotionCategory, number>> = {
-  regular: 0,
-  super: 1,
-  renewals: 2,
-  extreme: 3,
-  overload:4,
-  combination: 5,
-  bombs: 6,
-  powerbursts: 7,
+  unfinished: 0,
+  regular: 1,
+  super: 2,
+  renewals: 3,
+  extreme: 4,
+  overload: 5,
+  combination: 6,
+  bombs: 7,
+  powerbursts: 8,
 }
 
 const sortedSteps = computed(() => {
@@ -179,6 +213,10 @@ const sortedSteps = computed(() => {
   }
   return result
 })
+
+const unfSteps = computed(() => sortedSteps.value.filter(s => s.stepKind === 'unfinished'))
+const potionSteps = computed(() => sortedSteps.value.filter(s => s.stepKind === 'potion'))
+const totalXp = computed(() => potionSteps.value.reduce((sum, s) => sum + s.xpGained, 0))
 
 const openPanels = ref([...GROUP_ORDER])
 const stepsOpen = ref(['steps'])

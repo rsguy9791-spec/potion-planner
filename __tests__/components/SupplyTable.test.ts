@@ -1,11 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/vue'
-import { createVuetify } from 'vuetify'
-import * as components from 'vuetify/components'
-import * as directives from 'vuetify/directives'
 import SupplyTable from '@/components/SupplyTable.vue'
 import type { CalculatorInputs } from '@/types'
-
-const vuetify = createVuetify({ components, directives })
+import { DEFAULT_CONFIG } from '@/types'
+import { vuetifyStubs } from '../utils/stubs'
 
 const emptyInputs: CalculatorInputs = {
   herbloreLevel: 99,
@@ -15,13 +12,13 @@ const emptyInputs: CalculatorInputs = {
   secondaryModes: new Map(),
   disabledRecipes: new Set(),
   preferredRecipeTier: new Map(),
-  scrollOfCleansing: false,
+  perks: { ...DEFAULT_CONFIG },
 }
 
 function renderComponent(inputs: CalculatorInputs = emptyInputs) {
   return render(SupplyTable, {
     props: { inputs },
-    global: { plugins: [vuetify] },
+    global: { stubs: vuetifyStubs },
   })
 }
 

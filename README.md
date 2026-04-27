@@ -8,11 +8,13 @@ A calculator for planning potion crafting in RuneScape 3. Enter your target poti
 
 - **Multi-target planning** — queue several potions at once; supply is shared across all targets
 - **Full recipe chain resolution** — traces every intermediate step down to raw herbs and secondaries
-- **Supply tracking** — enter your current herbs, potions, and secondaries to see what you still need
-- **Scroll of Cleansing** — toggleable; adjusts ingredient quantities for the expected save rate
+- **Supply tracking** — enter your current herbs (clean, grimy, and unfinished), potions, and secondaries to see what you still need
+- **Unfinished potion supply** — declare pre-made unf potions per herb to reduce the number of scratch mixes scheduled
+- **Crafting steps** — ordered step list with unfinished potions grouped separately, XP per step, and decant notes for dose mismatches
+- **XP tracking** — per-step and total XP display, boosted by configurable boosts (clan fealty, botanist outfit, perfect juju, custom %)
+- **Perks panel** — configure Scroll of Cleansing, Factory outfit, Modified botanist mask, Portable well, and Brooch of the Gods to adjust craft counts
 - **Recipe management** — disable specific recipes (treat as purchases) or pin a specific tier for level-variant potions (e.g. Vulnerability bomb)
 - **Secondary modes** — per-secondary settings: Gather (calculate normally), Cap (use only what you have), or Skip (buy the whole recipe output)
-- **Crafting steps** — ordered step list showing exactly what to make and in what order, with decant notes for dose mismatches
 - **Shortfall warnings** — highlights untradeable items that can't be obtained and shows the maximum achievable quantity per target
 
 ## Stack

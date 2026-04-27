@@ -34,7 +34,7 @@ function getIngredientsPerCraft(targetId: IngredientId, inputs: CalculatorInputs
     secondaryModes: inputs.secondaryModes,
     disabledRecipes: inputs.disabledRecipes,
     preferredTier: inputs.preferredRecipeTier,
-    scrollOfCleansing: false,
+    perks: inputs.perks,
   }
   const state = emptyResolveState()
   const recipe = RECIPE_BY_ID.get(targetId)

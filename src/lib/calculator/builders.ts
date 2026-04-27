@@ -1,4 +1,4 @@
-import type { IngredientId, PotionDose, CalculatorInputs, IngredientResult, CraftStep } from '@/types'
+import type { IngredientId, PotionDose, CalculatorInputs, IngredientResult, CraftStep, PerksConfiguration } from '@/types'
 import { RECIPE_BY_ID, INGREDIENT_MAP } from '@/data/recipes'
 import type { Accumulator } from './types'
 import { cleansingMultiplier, isCleansingSaveable } from './scroll'
@@ -32,7 +32,7 @@ export function buildResults(
       const cleanId = id.startsWith('clean_') ? id : (def?.pairedHerbId ?? id)
       const herbSupply = inputs.herbSupply.get(cleanId)
       if (herbSupply) currentlyHave = herbSupply.cleanQty + herbSupply.grimyQty
-    } else if (kind === 'potion') {
+    } else if (kind === 'potion' || kind === 'unfinished_potion') {
       const consumedDoses = dosesConsumedFromSupply.get(id) ?? 0
       const outputDose = recipeEntry?.outputDose ?? 3
       currentlyHave = Math.floor(consumedDoses / outputDose)
@@ -41,7 +41,9 @@ export function buildResults(
       currentlyHave = inputs.itemSupply.get(id) ?? 0
     }
 
-    const rawQty = kind === 'potion' ? rawNetNeeded + currentlyHave : rawNetNeeded
+    const rawQty = (kind === 'potion' || kind === 'unfinished_potion')
+      ? rawNetNeeded + currentlyHave
+      : rawNetNeeded
 
     results.push({
       id, name, kind, totalNeeded, rawQty, currentlyHave,
@@ -58,8 +60,7 @@ export function buildSteps(
   craftCounts: Map<IngredientId, number>,
   craftOrder: IngredientId[],
   decantConsumed: Map<IngredientId, { targetDose: PotionDose; count: number }>,
-  scrollOfCleansing: boolean,
-  unfConsumed: Map<IngredientId, number>,
+  perks: PerksConfiguration,
 ): CraftStep[] {
   const crafted = new Set(craftCounts.keys())
   const decantMap = new Map<IngredientId, { dose: PotionDose; count: number }>()
@@ -72,26 +73,14 @@ export function buildSteps(
     .map(id => {
       const crafts = craftCounts.get(id)!
       const recipe = RECIPE_BY_ID.get(id)!
-      const multiplier = cleansingMultiplier(recipe, scrollOfCleansing)
-      const fromSupply = unfConsumed.get(id) ?? 0
-      const step1Crafts = recipe.twoStepMix ? crafts - fromSupply : crafts
+      const multiplier = cleansingMultiplier(recipe, perks.scrollOfCleansing)
+      const stepKind: CraftStep['stepKind'] = recipe.category === 'unfinished' ? 'unfinished' : 'potion'
 
-      // For twoStepMix recipes, identify the herb so we can insert the unf-from-supply
-      // entry immediately after it in one forward pass (no post-hoc mutation).
-      const herbRecipeInput = recipe.twoStepMix
-        ? recipe.inputs.find(i => i.kind === 'herb')
-        : undefined
-      const herbName = herbRecipeInput
-        ? (INGREDIENT_MAP.get(herbRecipeInput.id)?.name ?? herbRecipeInput.id)
-        : ''
-
-      const inputs = recipe.inputs.flatMap((inp, index) => {
+      const inputs = recipe.inputs.map((inp, index) => {
         const name = INGREDIENT_MAP.get(inp.id)?.name ?? RECIPE_BY_ID.get(inp.id)?.name ?? inp.id
-        const isStep1Input = recipe.twoStepMix && (inp.kind === 'vial' || inp.kind === 'herb')
-        const craftsBase = isStep1Input ? step1Crafts : crafts
-        const rawQty = craftsBase * inp.qty
-        const saveable = scrollOfCleansing && isCleansingSaveable(inp, index)
-        const qty = saveable ? Math.ceil(craftsBase * multiplier) * inp.qty : rawQty
+        const rawQty = crafts * inp.qty
+        const saveable = perks.scrollOfCleansing && isCleansingSaveable(inp, index)
+        const qty = saveable ? Math.ceil(crafts * multiplier) * inp.qty : rawQty
 
         let decantFrom: { fromDose: PotionDose; fromCount: number } | undefined
         if (inp.kind === 'potion' && inp.dose) {
@@ -107,30 +96,24 @@ export function buildSteps(
           }
         }
 
-        const entry = { id: inp.id, name, kind: inp.kind, qty, rawQty, dose: inp.dose, ...(decantFrom ? { decantFrom } : {}) }
-
-        // After the herb, emit the unf-from-supply entry (if any) so it sits naturally
-        // between the step-1 inputs (vial + herb) and the step-2 secondary.
-        if (inp.kind === 'herb' && fromSupply > 0) {
-          return [entry, { id: inp.id, name: `${herbName} (unf)`, kind: 'unfinished_potion' as const, qty: fromSupply, rawQty: fromSupply }]
-        }
-
-        return [entry]
+        return { id: inp.id, name, kind: inp.kind, qty, rawQty, dose: inp.dose, ...(decantFrom ? { decantFrom } : {}) }
       })
 
-      const step: CraftStep = {
+      // XP calculation
+      const baseBoostPercent = perks.clanFealtyPercent + perks.botanistXpPercent + perks.customXpPercent
+      const jujuBonus = perks.perfectJujuPotion && recipe.category === 'combination' ? 5 : 0
+      const boostMultiplier = 1 + (baseBoostPercent + jujuBonus) / 100
+      const xpGained = recipe.xpPerCraft ? Math.round(crafts * recipe.xpPerCraft * boostMultiplier) : 0
+
+      return {
         potionId: id,
         name: recipe.name,
         category: recipe.category,
+        stepKind,
         crafts,
         outputDose: recipe.outputDose,
         inputs,
-      }
-
-      if (recipe.twoStepMix) {
-        step.unfStep = { crafts: step1Crafts, fromSupply, herbName }
-      }
-
-      return step
+        xpGained,
+      } satisfies CraftStep
     })
 }

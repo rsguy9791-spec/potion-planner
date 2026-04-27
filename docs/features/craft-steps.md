@@ -1,50 +1,41 @@
 # Feature: Craft Steps
 
-An ordered list of crafting steps derived from the calculation, shown in a collapsible panel below the ingredient table.
+An ordered list of everything you need to make, shown in a collapsible **Crafting Steps** panel below the ingredient table.
 
-## Behaviour
+## Reading the steps
 
-Steps are in **post-order** (children before parents) — base potions first, overloads last. Only potions with a craft count > 0 after supply deduction appear.
+Steps are ordered so that ingredients for later recipes are crafted first (e.g. overload bases before the overload itself). Each step shows:
 
-Each step shows: craft count, potion name, output dose, and total input quantities consumed.
+- **How many** of the potion to make
+- **What inputs** are needed (quantities already adjusted for supply you declared)
+- **XP earned** for that step (shown inline, in the step title)
 
-## Decant steps
+Steps only appear when there are crafts to do — fully-supply-covered steps are hidden.
 
-When a crafted potion must be used at a **different dose** than it produces (e.g. overloads produce 3-dose but supreme overload needs 4-dose), the consuming step's input shows a decant note inline:
+---
 
-```
-3. Make 2× Overload (3-dose)
-4. Make 1× Supreme overload (6-dose)
-   2× Overload (4-dose) [↔ decant 2 3-dose], ...
-```
+## Unfinished potions group
 
-`decantFrom.fromCount` = how many crafted-dose potions to decant. Only appears when the ingredient was actually crafted (not fully covered by supply at the target dose).
+When any unfinished potions need to be made from scratch, they appear as a separate **Unfinished Potions** group at the top of the panel, before the regular finishing steps. Each entry shows how many to mix (e.g. `3 × Ranarr potion (unf)`).
 
-## Implementation
+If your supply covers all unfinished potions for a recipe, that recipe's entry is omitted from the group entirely.
 
-`craftCounts: Map<id, number>` and `craftOrder: id[]` are collected in post-order during `resolveChain`. `buildSteps` converts these to `CraftStep[]` and annotates inputs with `decantFrom` when a dose mismatch exists for a crafted ingredient.
+---
 
-```ts
-interface CraftStep {
-  potionId: IngredientId
-  name: string
-  category: PotionCategory
-  crafts: number
-  outputDose: PotionDose
-  inputs: Array<{
-    id: IngredientId
-    name: string
-    qty: number          // scroll-adjusted quantity
-    rawQty: number       // unadjusted quantity (equals qty when scroll inactive or not saveable)
-    dose?: PotionDose
-    decantFrom?: { fromDose: PotionDose; fromCount: number }
-  }>
-}
-```
+## XP
 
-## Key files
+Each regular finishing step shows the XP you'll earn in the step title. Unfinished-potion steps show no XP (they award none in-game).
 
-- `src/lib/calculator/builders.ts` — `buildSteps` (decant annotation is inline, no separate `buildDecantMap`)
-- `src/lib/calculator/resolution.ts` — craft tracking (`craftCounts`, `craftOrder`, `decantConsumed`) in `resolveChain`
-- `src/types/index.ts` — `CraftStep`
-- `src/components/ResultsTable.vue` — renders steps and decant lines
+A **Total XP** figure is shown above the ingredient table whenever there is any XP to display. XP values reflect any boosts configured in the [Perks](perks.md) panel.
+
+---
+
+## Scroll of Cleansing savings
+
+When the Scroll of Cleansing is enabled (in Perks), ingredient quantities are reduced for saveable inputs. The original un-saved quantity is shown in green next to the adjusted number so you can see how much the scroll saves.
+
+---
+
+## Decant notes
+
+When a potion you craft needs to be used at a different dose than it produces (e.g. an overload that produces 3-dose but is used as 4-dose for a supreme overload), the input line shows an inline decant note indicating how many potions to decant and from which dose.

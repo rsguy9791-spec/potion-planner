@@ -1,27 +1,31 @@
 # Feature: Supply Tracking
 
-Players declare existing inventory so the calculator can subtract it from requirements.
+Enter your current inventory so the calculator knows what you already have. It subtracts your supply from the total requirements, reducing both the ingredients needed and the crafts scheduled.
 
-## Categories
+## Herb supply
 
-| Field | Type | Notes |
-|---|---|---|
-| `herbSupply` | `Map<cleanHerbId, { cleanQty, grimyQty }>` | Grimy counts as clean at calculation time |
-| `potionSupply` | `Map<potionId, { threeDose, fourDose, sixDose }>` | Stored as total dose pool; mixed sizes handled correctly. Flasks (6-dose) show only a 6-dose field. |
-| `itemSupply` | `Map<itemId, qty>` | Secondaries, vials, misc |
+For each herb, you can enter:
 
-The dose pool is shared across all targets and consumed during chain resolution.
+- **Clean** — clean herbs in your bank
+- **Grimy** — grimy herbs (treated as clean for calculation purposes)
+- **Unf** — pre-made unfinished potions for that herb
 
-## Secondary modes
+Entering unfinished potions reduces how many scratch herb+vial mixes the calculator schedules. For example, if you need 10 prayer potions and have 4 ranarr unf, the Unfinished Potions group will show only 6 mixes instead of 10.
 
-Per-secondary gathering behaviour is configured in the Recipes sidebar (`secondaryModes` map), not the supply table. See `recipe-management` spec.
+## Secondary supply
 
-## UI
+Enter quantities of secondaries you already have. Per-secondary gathering behaviour is configured separately in the Recipes sidebar (Gather / Cap / Skip modes).
 
-`SupplyTable.vue` has four static sections (Herbs, Secondaries, Potions, Vials & Bases), each with a Clear button. Rows are derived from the full `INGREDIENTS` list and `SUPPLY_POTION_IDS` — all known ingredients are always shown, not filtered to current targets. Potions are grouped by category with category labels.
+## Potion supply
 
-## Key files
+Enter existing potions by dose size. The calculator converts these to a dose pool and deducts them from requirements before scheduling any crafts.
 
-- `src/composables/useCalculator.ts` — `setHerbClean/Grimy`, `setItemQty`, `setPotionThreeDose/FourDose/SixDose`, `resetCategory`
-- `src/components/SupplyTable.vue`
-- `src/lib/calculator/resolution.ts` — `buildDosePool`, `buildSecondaryPool`
+## Vials & bases
+
+Enter vials of water, coconut milk, and other crafting bases.
+
+---
+
+## Clearing supply
+
+Each supply section has a **Clear** button to zero out all values in that section at once. The **Reset All** button in the app bar clears everything including targets.

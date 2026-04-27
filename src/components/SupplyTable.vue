@@ -169,14 +169,10 @@ const emit = defineEmits<{
 
 // ─── Static row definitions ───────────────────────────────────────────────────
 
-const HERB_ROWS = (() => {
-  const seen = new Set<string>()
-  return INGREDIENTS
-    .filter(i => i.kind === 'herb' && i.id.startsWith('clean_'))
-    .filter(i => { if (seen.has(i.id)) return false; seen.add(i.id); return true })
-    .map(i => ({ cleanId: i.id, name: i.name }))
-    .sort((a, b) => a.name.localeCompare(b.name))
-})()
+const HERB_ROWS = INGREDIENTS
+  .filter(i => i.kind === 'herb' && !i.id.startsWith('grimy_'))
+  .map(i => ({ cleanId: i.id, name: i.name }))
+  .sort((a, b) => a.name.localeCompare(b.name))
 
 const SECONDARY_ROWS = INGREDIENTS
   .filter(i => i.kind === 'secondary')

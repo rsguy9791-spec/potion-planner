@@ -1,11 +1,7 @@
 import { render, screen } from '@testing-library/vue'
-import { createVuetify } from 'vuetify'
-import * as components from 'vuetify/components'
-import * as directives from 'vuetify/directives'
 import SummaryBanner from '@/components/SummaryBanner.vue'
 import type { ShortfallItem, TargetAchievability } from '@/types'
-
-const vuetify = createVuetify({ components, directives })
+import { vuetifyStubs } from '../utils/stubs'
 
 function renderBanner(
   shortfalls: ShortfallItem[] = [],
@@ -13,7 +9,7 @@ function renderBanner(
 ) {
   return render(SummaryBanner, {
     props: { shortfalls, achievability },
-    global: { plugins: [vuetify] },
+    global: { stubs: vuetifyStubs },
   })
 }
 

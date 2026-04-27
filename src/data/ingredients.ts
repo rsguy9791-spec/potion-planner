@@ -1,16 +1,16 @@
-import type { IngredientDef } from '@/types'
+import type { IngredientDef, IngredientId } from '@/types'
 
 export const INGREDIENTS: IngredientDef[] = [
   // Herbs (clean)
-  { id: 'clean_irit',       name: 'Irit leaf',        kind: 'herb', pairedHerbId: 'grimy_irit' },
-  { id: 'clean_kwuarm',     name: 'Kwuarm',            kind: 'herb', pairedHerbId: 'grimy_kwuarm' },
-  { id: 'clean_cadantine',  name: 'Cadantine',         kind: 'herb', pairedHerbId: 'grimy_cadantine' },
-  { id: 'clean_dwarf_weed', name: 'Dwarf weed',        kind: 'herb', pairedHerbId: 'grimy_dwarf_weed' },
-  { id: 'clean_lantadyme',  name: 'Lantadyme',         kind: 'herb', pairedHerbId: 'grimy_lantadyme' },
-  { id: 'clean_spirit_weed',name: 'Spirit weed',       kind: 'herb', pairedHerbId: 'grimy_spirit_weed' },
-  { id: 'clean_avantoe',    name: 'Avantoe',           kind: 'herb', pairedHerbId: 'grimy_avantoe' },
-  { id: 'clean_torstol',    name: 'Torstol',           kind: 'herb', pairedHerbId: 'grimy_torstol' },
-  { id: 'clean_fellstalk',  name: 'Fellstalk',         kind: 'herb', pairedHerbId: 'grimy_fellstalk' },
+  { id: 'clean_irit',        name: 'Irit leaf',         kind: 'herb', pairedHerbId: 'grimy_irit' },
+  { id: 'clean_kwuarm',      name: 'Kwuarm',             kind: 'herb', pairedHerbId: 'grimy_kwuarm' },
+  { id: 'clean_cadantine',   name: 'Cadantine',          kind: 'herb', pairedHerbId: 'grimy_cadantine' },
+  { id: 'clean_dwarf_weed',  name: 'Dwarf weed',         kind: 'herb', pairedHerbId: 'grimy_dwarf_weed' },
+  { id: 'clean_lantadyme',   name: 'Lantadyme',          kind: 'herb', pairedHerbId: 'grimy_lantadyme' },
+  { id: 'clean_spirit_weed', name: 'Spirit weed',        kind: 'herb', pairedHerbId: 'grimy_spirit_weed' },
+  { id: 'clean_avantoe',     name: 'Avantoe',            kind: 'herb', pairedHerbId: 'grimy_avantoe' },
+  { id: 'clean_torstol',     name: 'Torstol',            kind: 'herb', pairedHerbId: 'grimy_torstol' },
+  { id: 'clean_fellstalk',   name: 'Fellstalk',          kind: 'herb', pairedHerbId: 'grimy_fellstalk' },
   { id: 'clean_toadflax',    name: 'Toadflax',           kind: 'herb', pairedHerbId: 'grimy_toadflax' },
   { id: 'clean_snapdragon',  name: 'Snapdragon',         kind: 'herb', pairedHerbId: 'grimy_snapdragon' },
   { id: 'clean_arbuck',      name: 'Arbuck',             kind: 'herb', pairedHerbId: 'grimy_arbuck' },
@@ -19,6 +19,8 @@ export const INGREDIENTS: IngredientDef[] = [
   { id: 'clean_harralander', name: 'Harralander',        kind: 'herb', pairedHerbId: 'grimy_harralander' },
   { id: 'clean_marrentill',  name: 'Marrentill',         kind: 'herb', pairedHerbId: 'grimy_marrentill' },
   { id: 'clean_wergali',     name: 'Wergali',            kind: 'herb', pairedHerbId: 'grimy_wergali' },
+  // Cave nightshade is treated as a herb for weapon_poison++ crafting
+  { id: 'cave_nightshade',   name: 'Cave nightshade',    kind: 'herb' },
   // Herbs (grimy)
   { id: 'grimy_irit',        name: 'Grimy irit leaf',    kind: 'herb', pairedHerbId: 'clean_irit' },
   { id: 'grimy_kwuarm',      name: 'Grimy kwuarm',       kind: 'herb', pairedHerbId: 'clean_kwuarm' },
@@ -37,6 +39,23 @@ export const INGREDIENTS: IngredientDef[] = [
   { id: 'grimy_harralander', name: 'Grimy harralander',  kind: 'herb', pairedHerbId: 'clean_harralander' },
   { id: 'grimy_marrentill',  name: 'Grimy marrentill',   kind: 'herb', pairedHerbId: 'clean_marrentill' },
   { id: 'grimy_wergali',     name: 'Grimy wergali',      kind: 'herb', pairedHerbId: 'clean_wergali' },
+  // Unfinished potions — pairedHerbId points to the herb that produces each unf
+  { id: 'harralander_potion_unf', name: 'Harralander potion (unf)', kind: 'unfinished_potion', pairedHerbId: 'clean_harralander' },
+  { id: 'spirit_weed_potion_unf', name: 'Spirit weed potion (unf)', kind: 'unfinished_potion', pairedHerbId: 'clean_spirit_weed' },
+  { id: 'wergali_potion_unf',     name: 'Wergali potion (unf)',     kind: 'unfinished_potion', pairedHerbId: 'clean_wergali' },
+  { id: 'snapdragon_potion_unf',  name: 'Snapdragon potion (unf)',  kind: 'unfinished_potion', pairedHerbId: 'clean_snapdragon' },
+  { id: 'irit_potion_unf',        name: 'Irit potion (unf)',        kind: 'unfinished_potion', pairedHerbId: 'clean_irit' },
+  { id: 'kwuarm_potion_unf',      name: 'Kwuarm potion (unf)',      kind: 'unfinished_potion', pairedHerbId: 'clean_kwuarm' },
+  { id: 'cadantine_potion_unf',   name: 'Cadantine potion (unf)',   kind: 'unfinished_potion', pairedHerbId: 'clean_cadantine' },
+  { id: 'dwarf_weed_potion_unf',  name: 'Dwarf weed potion (unf)',  kind: 'unfinished_potion', pairedHerbId: 'clean_dwarf_weed' },
+  { id: 'lantadyme_potion_unf',   name: 'Lantadyme potion (unf)',   kind: 'unfinished_potion', pairedHerbId: 'clean_lantadyme' },
+  { id: 'ranarr_potion_unf',      name: 'Ranarr potion (unf)',      kind: 'unfinished_potion', pairedHerbId: 'clean_ranarr' },
+  { id: 'avantoe_potion_unf',     name: 'Avantoe potion (unf)',     kind: 'unfinished_potion', pairedHerbId: 'clean_avantoe' },
+  { id: 'bloodweed_potion_unf',   name: 'Bloodweed potion (unf)',   kind: 'unfinished_potion', pairedHerbId: 'clean_bloodweed' },
+  { id: 'toadflax_potion_unf',    name: 'Toadflax potion (unf)',    kind: 'unfinished_potion', pairedHerbId: 'clean_toadflax' },
+  { id: 'fellstalk_potion_unf',   name: 'Fellstalk potion (unf)',   kind: 'unfinished_potion', pairedHerbId: 'clean_fellstalk' },
+  { id: 'arbuck_potion_unf',      name: 'Arbuck potion (unf)',      kind: 'unfinished_potion', pairedHerbId: 'clean_arbuck' },
+  { id: 'weapon_poison_pp_unf',   name: 'Weapon poison++ (unf)',    kind: 'unfinished_potion', pairedHerbId: 'cave_nightshade' },
   // Secondaries
   { id: 'adrenaline_crystal',    name: 'Adrenaline crystal',     kind: 'secondary' },
   { id: 'beak_snot',             name: 'Beak snot',              kind: 'secondary' },
@@ -45,7 +64,6 @@ export const INGREDIENTS: IngredientDef[] = [
   { id: 'cockatrice_egg',        name: 'Cockatrice egg',         kind: 'secondary' },
   { id: 'blood_rune',            name: 'Blood rune',             kind: 'secondary' },
   { id: 'bottled_dinosaur_roar', name: 'Bottled dinosaur roar',  kind: 'secondary' },
-  { id: 'cave_nightshade',       name: 'Cave nightshade',        kind: 'secondary' },
   { id: 'chaos_rune',            name: 'Chaos rune',             kind: 'secondary' },
   { id: 'congealed_blood',       name: 'Congealed blood',        kind: 'secondary' },
   { id: 'crushed_nest',          name: 'Crushed nest',           kind: 'secondary' },
@@ -98,4 +116,17 @@ export const INGREDIENTS: IngredientDef[] = [
 
 export const INGREDIENT_MAP: Map<string, IngredientDef> = new Map(
   INGREDIENTS.map(i => [i.id, i])
+)
+
+/**
+ * Maps each herb id → its unfinished potion ingredient id.
+ * Built from all unfinished_potion IngredientDefs that carry a pairedHerbId.
+ * Used by buildDosePool to seed unf supply and by SupplyTable to derive herb rows.
+ */
+export const UNF_BY_HERB: Map<IngredientId, IngredientId> = new Map(
+  INGREDIENTS
+    .filter((i): i is IngredientDef & { pairedHerbId: string } =>
+      i.kind === 'unfinished_potion' && i.pairedHerbId !== undefined
+    )
+    .map(i => [i.pairedHerbId, i.id])
 )

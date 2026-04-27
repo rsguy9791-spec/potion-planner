@@ -1,15 +1,11 @@
 import { render, screen, fireEvent } from '@testing-library/vue'
-import { createVuetify } from 'vuetify'
-import * as components from 'vuetify/components'
-import * as directives from 'vuetify/directives'
 import LevelInput from '@/components/LevelInput.vue'
-
-const vuetify = createVuetify({ components, directives })
+import { vuetifyStubs } from '../utils/stubs'
 
 function renderComponent(modelValue = 99) {
   return render(LevelInput, {
     props: { modelValue },
-    global: { plugins: [vuetify] },
+    global: { stubs: vuetifyStubs },
   })
 }
 
