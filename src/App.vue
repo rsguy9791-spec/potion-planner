@@ -30,48 +30,38 @@
     </v-app-bar>
 
     <v-main>
-      <div class="app-layout">
+      <div class="app-grid" :class="{ 'col1-collapsed': col1Collapsed }">
 
-        <!-- Two-column scrollable area (stacks vertically on mobile) -->
-        <div class="columns-area">
-
-          <!-- Left column: targets + supplies -->
-          <div class="scroll-col" style="flex: 5">
+        <!-- Col 1: Targets (collapsible to the left) -->
+        <div class="grid-col">
+          <template v-if="!col1Collapsed">
             <TargetList
               :targets="targets"
               :available-targets="availableTargets"
               :herblore-level="inputs.herbloreLevel"
-              class="mb-3"
               @add="addTarget"
               @remove="removeTarget"
               @set-potion="setTargetPotion"
               @set-qty="setTargetQty"
+              @toggle-collapse="col1Collapsed = true"
             />
-
-            <SupplyTable
-              :inputs="inputs"
-              @set-herb-clean="setHerbClean"
-              @set-herb-grimy="setHerbGrimy"
-              @set-herb-unf="setHerbUnf"
-              @set-item-qty="setItemQty"
-              @set-potion-three-dose="setPotionThreeDose"
-              @set-potion-four-dose="setPotionFourDose"
-              @set-potion-six-dose="setPotionSixDose"
-              @reset-category="resetCategory"
-            />
+          </template>
+          <div v-else class="collapsed-tab" @click="col1Collapsed = false">
+            <v-icon size="small" color="medium-emphasis">mdi-chevron-right</v-icon>
+            <span class="collapsed-label">Target Potions</span>
           </div>
-
-          <!-- Right column: results -->
-          <div class="scroll-col" style="flex: 7">
-            <SummaryBanner
-              v-if="result"
-              :shortfalls="result.shortfalls"
-              :achievability="result.achievability"
-            />
-            <ResultsTable :result="result" @update-have="onUpdateHave" />
-          </div>
-
         </div>
+
+        <!-- Col 2: Unified supply + results -->
+        <div class="grid-col">
+          <SupplyColumn />
+        </div>
+
+        <!-- Col 3: Crafting steps (includes summary banner) -->
+        <div class="grid-col">
+          <CraftingSteps :result="result" />
+        </div>
+
       </div>
     </v-main>
 
@@ -81,13 +71,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, computed } from 'vue'
 import LevelInput from '@/components/LevelInput.vue'
 import TargetList from '@/components/TargetList.vue'
-import SupplyTable from '@/components/SupplyTable.vue'
-import ResultsTable from '@/components/ResultsTable.vue'
+import SupplyColumn from '@/components/SupplyColumn.vue'
+import CraftingSteps from '@/components/CraftingSteps.vue'
 import RecipesSidebar from '@/components/RecipesSidebar.vue'
-import SummaryBanner from '@/components/SummaryBanner.vue'
 import PerksSidebar from '@/components/PerksSidebar.vue'
 import { useCalculator } from '@/composables/useCalculator'
 
@@ -100,72 +89,91 @@ const {
   removeTarget,
   setTargetPotion,
   setTargetQty,
-  setHerbClean,
-  setHerbGrimy,
-  setHerbUnf,
-  setItemQty,
-  setPotionThreeDose,
-  setPotionFourDose,
-  setPotionSixDose,
   resetAll,
-  resetCategory,
   setConfig,
 } = useCalculator()
 
-const sidebarOpen = ref(false)
-const perksOpen = ref(false)
-
-watch(sidebarOpen, v => { if (v) perksOpen.value = false })
-watch(perksOpen, v => { if (v) sidebarOpen.value = false })
-
-function onUpdateHave(id: string, kind: string, value: number) {
-  if (kind === 'herb') {
-    setHerbClean(id, value)
-  } else {
-    setItemQty(id, value)
-  }
-}
+const openPanel = ref<'sidebar' | 'perks' | null>(null)
+const sidebarOpen = computed({
+  get: () => openPanel.value === 'sidebar',
+  set: (v: boolean) => { openPanel.value = v ? 'sidebar' : null },
+})
+const perksOpen = computed({
+  get: () => openPanel.value === 'perks',
+  set: (v: boolean) => { openPanel.value = v ? 'perks' : null },
+})
+const col1Collapsed = ref(false)
 </script>
 
 <style scoped>
-.app-layout {
-  display: flex;
-  flex-direction: column;
+.app-grid {
+  display: grid;
+  grid-template-columns: 25% 50% 25%;
+  gap: 12px;
   height: calc(100vh - 64px);
   padding: 12px;
-  gap: 12px;
   box-sizing: border-box;
   overflow: hidden;
 }
 
-.columns-area {
-  display: flex;
-  gap: 12px;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
+.app-grid.col1-collapsed {
+  grid-template-columns: 44px 1fr 25%;
 }
 
-.scroll-col {
+.grid-col {
   overflow-y: auto;
   min-width: 0;
 }
 
-@media (max-width: 768px) {
-  .app-layout {
+.collapsed-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 4px;
+  cursor: pointer;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  height: fit-content;
+  gap: 8px;
+  transition: background 0.15s;
+}
+
+.collapsed-tab:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.collapsed-label {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+@media (max-width: 960px) {
+  .app-grid,
+  .app-grid.col1-collapsed {
+    grid-template-columns: 1fr;
     height: auto;
     overflow: visible;
   }
 
-  .columns-area {
-    flex-direction: column;
-    overflow: visible;
-    flex: unset;
+  .grid-col {
+    overflow-y: visible;
   }
 
-  .scroll-col {
-    overflow-y: visible;
-    flex: unset !important;
+  .collapsed-tab {
+    flex-direction: row;
+    width: 100%;
+    height: auto;
+  }
+
+  .collapsed-label {
+    writing-mode: horizontal-tb;
+    transform: none;
   }
 }
 </style>

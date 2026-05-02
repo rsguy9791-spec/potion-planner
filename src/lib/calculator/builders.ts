@@ -1,4 +1,4 @@
-import type { IngredientId, PotionDose, CalculatorInputs, IngredientResult, CraftStep, PerksConfiguration } from '@/types'
+import type { IngredientId, PotionDose, CalculatorInputs, IngredientResult, CraftStep, StepInput, PerksConfiguration, Recipe } from '@/types'
 import { RECIPE_BY_ID, INGREDIENT_MAP } from '@/data/recipes'
 import type { Accumulator } from './types'
 import { cleansingMultiplier, isCleansingSaveable } from './scroll'
@@ -56,6 +56,13 @@ export function buildResults(
   return results
 }
 
+function calcStepXp(crafts: number, recipe: Recipe, perks: PerksConfiguration): number {
+  if (!recipe.xpPerCraft) return 0
+  const baseBoostPercent = perks.clanFealtyPercent + perks.botanistXpPercent + perks.customXpPercent
+  const jujuBonus = perks.perfectJujuPotion && recipe.type === 'combination' ? 5 : 0
+  return Math.round(crafts * recipe.xpPerCraft * (1 + (baseBoostPercent + jujuBonus) / 100))
+}
+
 export function buildSteps(
   craftCounts: Map<IngredientId, number>,
   craftOrder: IngredientId[],
@@ -76,7 +83,7 @@ export function buildSteps(
       const multiplier = cleansingMultiplier(recipe, perks.scrollOfCleansing)
       const stepKind: CraftStep['stepKind'] = recipe.category === 'unfinished' ? 'unfinished' : 'potion'
 
-      const inputs = recipe.inputs.map((inp, index) => {
+      const inputs: StepInput[] = recipe.inputs.map((inp, index) => {
         const name = INGREDIENT_MAP.get(inp.id)?.name ?? RECIPE_BY_ID.get(inp.id)?.name ?? inp.id
         const rawQty = crafts * inp.qty
         const saveable = perks.scrollOfCleansing && isCleansingSaveable(inp, index)
@@ -99,11 +106,7 @@ export function buildSteps(
         return { id: inp.id, name, kind: inp.kind, qty, rawQty, dose: inp.dose, ...(decantFrom ? { decantFrom } : {}) }
       })
 
-      // XP calculation
-      const baseBoostPercent = perks.clanFealtyPercent + perks.botanistXpPercent + perks.customXpPercent
-      const jujuBonus = perks.perfectJujuPotion && recipe.type === 'combination' ? 5 : 0
-      const boostMultiplier = 1 + (baseBoostPercent + jujuBonus) / 100
-      const xpGained = recipe.xpPerCraft ? Math.round(crafts * recipe.xpPerCraft * boostMultiplier) : 0
+      const xpGained = calcStepXp(crafts, recipe, perks)
 
       return {
         potionId: id,

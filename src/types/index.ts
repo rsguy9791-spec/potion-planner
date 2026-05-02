@@ -142,6 +142,57 @@ export interface IngredientResult {
   tradeable: boolean
 }
 
+interface SupplyRowBase {
+  id: IngredientId
+  name: string
+  tradeable: boolean
+  totalNeeded: number
+  rawQty: number
+  scrollSavings: number
+  remaining: number
+  isNeeded: boolean
+}
+
+export interface HerbSupplyRow extends SupplyRowBase {
+  kind: 'herb'
+  herbId: IngredientId
+  qtyClean: number
+  qtyGrimy: number
+  qtyUnf: number
+}
+
+export interface PotionSupplyRow extends SupplyRowBase {
+  kind: 'potion'
+  category: PotionCategory
+  isFlask: boolean
+  qtyThree: number
+  qtyFour: number
+  qtySix: number
+}
+
+export interface ItemSupplyRow extends SupplyRowBase {
+  kind: 'secondary' | 'vial' | 'misc'
+  qty: number
+}
+
+export type SupplyRow = HerbSupplyRow | PotionSupplyRow | ItemSupplyRow
+
+export interface StepInput {
+  id: IngredientId
+  name: string
+  kind: IngredientKind
+  /** Quantity required after scroll of cleansing savings. */
+  qty: number
+  /** Quantity required without scroll of cleansing. Equal to qty when scroll is inactive or ingredient is not saveable. */
+  rawQty: number
+  dose?: PotionDose
+  /**
+   * When this potion input must be decanted from its crafted dose before use.
+   * `fromDose` = the dose the potion was crafted at; `fromCount` = how many of those to decant.
+   */
+  decantFrom?: { fromDose: PotionDose; fromCount: number }
+}
+
 export interface CraftStep {
   potionId: IngredientId
   name: string
@@ -151,21 +202,7 @@ export interface CraftStep {
   /** Number of recipe executions (= number of output potions produced) */
   crafts: number
   outputDose: PotionDose
-  inputs: Array<{
-    id: IngredientId
-    name: string
-    kind: IngredientKind
-    /** Quantity required after scroll of cleansing savings. */
-    qty: number
-    /** Quantity required without scroll of cleansing. Equal to qty when scroll is inactive or ingredient is not saveable. */
-    rawQty: number
-    dose?: PotionDose
-    /**
-     * When this potion input must be decanted from its crafted dose before use.
-     * `fromDose` = the dose the potion was crafted at; `fromCount` = how many of those to decant.
-     */
-    decantFrom?: { fromDose: PotionDose; fromCount: number }
-  }>
+  inputs: StepInput[]
   /** XP gained in this step (post-boost). 0 for unfinished-potion steps. */
   xpGained: number
 }

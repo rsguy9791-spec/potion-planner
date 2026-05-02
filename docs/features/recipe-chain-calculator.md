@@ -38,7 +38,7 @@ Recipes with `recipeGroup` are selected by highest unlocked level. Users can pin
 
 ## Key files
 
-- `src/lib/calculator/index.ts` — `calculateAll`, `getIngredientList`
+- `src/lib/calculator/index.ts` — `calculateAll`
 - `src/lib/calculator/resolution.ts` — `resolveChain`, `buildDosePool`, `buildSecondaryPool`
 - `src/lib/calculator/scroll.ts` — `cleansingMultiplier`, `isCleansingSaveable`
 - `src/lib/calculator/builders.ts` — `buildResults`, `buildSteps`

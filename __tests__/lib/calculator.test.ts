@@ -1,4 +1,4 @@
-import { calculateAll, getIngredientList } from '@/lib/calculator'
+import { calculateAll } from '@/lib/calculator'
 import type { CalculatorInputs, TargetPotion, PerksConfiguration } from '@/types'
 import { DEFAULT_CONFIG } from '@/types'
 import { RECIPES } from '@/data/recipes'
@@ -299,20 +299,6 @@ describe('Holy overload', () => {
     // And prayer renewal's ingredients
     const fellstalk = result.ingredients.find(i => i.id === 'clean_fellstalk')
     expect(fellstalk?.totalNeeded).toBeGreaterThan(0)
-  })
-})
-
-// ─── getIngredientList ────────────────────────────────────────────────────────
-
-describe('getIngredientList', () => {
-  test('returns non-empty list for overload at level 96', () => {
-    const list = getIngredientList('overload', 96)
-    expect(list.length).toBeGreaterThan(0)
-  })
-
-  test('includes vial_of_water for overload chain', () => {
-    const list = getIngredientList('overload', 96)
-    expect(list.find(i => i.id === 'vial_of_water')).toBeDefined()
   })
 })
 

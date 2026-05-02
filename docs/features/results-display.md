@@ -1,33 +1,46 @@
 # Feature: Results Display
 
-`ResultsTable.vue` shows ingredients needed, current supply, and still-needed quantities.
+The right-hand column shows crafting steps and a summary banner when there are shortfalls.
 
-## Ingredient table
+## Crafting Steps panel (`CraftingSteps.vue`)
 
-Sorted: herbs → secondaries → potions → vials/misc.
+Steps are ordered topologically so inputs are crafted before the potions that consume them. Each step shows:
 
-| Row state | Colour | Condition |
+- Craft count and potion name
+- Output dose size
+- Input quantities (scroll savings shown in green when active)
+- XP earned for that step
+
+Unfinished-potion steps appear in a separate group above the regular steps; they show no XP.
+
+A **Total XP** figure is shown in the panel header whenever there is any XP to display.
+
+## Summary banner (`SummaryBanner.vue`)
+
+Appears above the steps when `shortfalls.length > 0`. Lists untradeable items that can't be obtained and the max achievable quantity per affected target.
+
+## Supply list panel (`SupplyColumn.vue` + `SupplyTable.vue`)
+
+The left column shows an accordion with four sections: Herbs & Unfinished Potions, Secondaries, Potions, and Vials & Bases. Each section uses `SupplyTable` to render rows.
+
+### Row colouring
+
+| State | Colour | Condition |
 |---|---|---|
-| Covered | Green | `stillNeeded === 0` |
-| Deficit | Red | `stillNeeded > 0`, tradeable |
-| Untradeable shortfall | Orange | `stillNeeded > 0`, untradeable — lock icon shown |
+| Covered | Green remaining | `remaining === 0` and `isNeeded` |
+| Deficit | Red remaining | `remaining > 0`, tradeable |
+| Untradeable shortfall | Orange remaining + lock icon | `remaining > 0`, untradeable |
+| Not needed | Dimmed | `isNeeded === false` |
 
-**Scroll of Cleansing:** when `rawQty !== totalNeeded`, the Total Needed cell shows a leaf icon and a tooltip with the unmodified quantity.
+### Scroll of Cleansing savings
 
-**Currently Have:** editable inline for non-potion rows (herbs and items). Potion rows are read-only (derived from dose pool consumption).
-
-## Summary banner
-
-`SummaryBanner.vue` appears above the table when `shortfalls.length > 0`, listing untradeable items that can't be obtained and the max achievable quantity per affected target.
-
-## Craft steps
-
-Collapsible panel below the table. Each step shows craft count, name, output dose, and input quantities. Inputs with a `decantFrom` field render an inline decant note in info colour: `↔ decant N X-dose`.
+When `scrollSavings > 0`, the Needed cell shows a leaf icon and a tooltip with the unmodified (`rawQty`) quantity.
 
 ## Key files
 
-- `src/components/ResultsTable.vue`
+- `src/components/CraftingSteps.vue`
+- `src/components/SupplyColumn.vue`
+- `src/components/SupplyTable.vue`
 - `src/components/SummaryBanner.vue`
-- `src/App.vue`
 - `src/lib/calculator/builders.ts` — `buildResults`, `buildSteps`
 - `src/lib/calculator/achievability.ts` — `computeAchievability`

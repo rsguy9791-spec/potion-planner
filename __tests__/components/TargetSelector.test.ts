@@ -87,6 +87,13 @@ describe('TargetList', () => {
     expect(screen.getAllByLabelText('Qty')).toHaveLength(2)
   })
 
+  test('emits toggleCollapse when collapse button clicked', async () => {
+    const { emitted } = renderComponent()
+    const collapseBtn = screen.getByRole('button', { name: /collapse targets/i })
+    await fireEvent.click(collapseBtn)
+    expect(emitted()['toggleCollapse']).toBeDefined()
+  })
+
   test('filters available targets by level', () => {
     const level96Targets = RECIPES.filter(r =>
       (r.category === 'overload' ||

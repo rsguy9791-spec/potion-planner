@@ -21,8 +21,12 @@ export const vuetifyStubs = {
   VSpacer: { template: '<span />' },
   VDivider: { template: '<hr />' },
   VList: slotPassthrough,
-  // Render both prepend and default slots so switches/icons inside #prepend are visible.
-  VListItem: { template: '<div><slot name="prepend" /><slot /></div>' },
+  // inheritAttrs:false + v-bind="$attrs" puts onClick/title directly on the root div,
+  // making menu items clickable and queryable by their title text.
+  VListItem: {
+    inheritAttrs: false,
+    template: '<div v-bind="$attrs"><slot name="prepend" />{{ $attrs.title }}<slot /></div>',
+  },
   VListItemTitle: slotPassthrough,
   VListItemSubtitle: slotPassthroughSpan,
   VListSubheader: slotPassthrough,
@@ -73,6 +77,7 @@ export const vuetifyStubs = {
           :id="uid"
           :type="type || 'text'"
           :value="modelValue"
+          :aria-label="$attrs['aria-label']"
           @input="$emit('update:modelValue', $event.target.value)"
         />
       </div>
@@ -123,6 +128,11 @@ export const vuetifyStubs = {
     props: ['modelValue', 'min', 'max', 'step'],
     emits: ['update:modelValue'],
     template: `<input type="range" :value="modelValue" :min="min" :max="max" :step="step" @input="$emit('update:modelValue', Number($event.target.value))" />`,
+  },
+
+  // ── Menu ──────────────────────────────────────────────────────────────────
+  VMenu: {
+    template: '<div><slot name="activator" :props="{}" /><slot /></div>',
   },
 
   // ── Navigation ────────────────────────────────────────────────────────────

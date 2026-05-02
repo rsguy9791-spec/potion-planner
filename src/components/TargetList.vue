@@ -1,72 +1,41 @@
 <template>
   <v-card elevation="2">
-    <v-card-title class="d-flex align-center justify-space-between pt-4 pb-2 px-4">
+    <v-card-title class="d-flex align-center justify-space-between pt-3 pb-2 px-4">
       <span>Target potions</span>
-      <v-btn size="small" color="primary" variant="tonal" prepend-icon="mdi-plus" @click="emit('add')">
-        Add
-      </v-btn>
+      <div class="d-flex align-center ga-1">
+        <v-btn size="small" color="primary" variant="tonal" prepend-icon="mdi-plus" @click="emit('add')">
+          Add
+        </v-btn>
+        <v-btn icon="mdi-chevron-left" size="small" variant="text" aria-label="Collapse targets" @click="emit('toggleCollapse')" />
+      </div>
     </v-card-title>
-    <v-card-text class="text-medium-emphasis text-body-small pt-0 pb-2">
-      Add your target potions and selected quantities
+    <v-card-text class="text-caption text-medium-emphasis pt-0 pb-2 px-4">
+      Add your target potions and quantities
     </v-card-text>
 
     <v-card-text class="pa-2">
-      <v-row
-        v-for="(target, index) in targets"
-        :key="index"
-        align="center"
-        no-gutters
-        class="mb-2 px-2"
-      >
-        <v-col cols="6" class="pr-1">
-          <v-autocomplete
-            :model-value="target.potionId"
-            :items="selectItems"
-            item-title="title"
-            item-value="value"
-            label="Potion"
-            density="compact"
-            variant="outlined"
-            hide-details
-            :custom-filter="filterPotions"
-            @update:model-value="v => emit('setPotion', index, String(v ?? ''))"
-          />
-        </v-col>
+      <v-row v-for="(target, index) in targets" :key="index" align="center" no-gutters class="mb-2 px-2">
         <v-col cols="1" class="d-flex align-center justify-center">
           <v-tooltip location="right" max-width="320">
             <template #activator="{ props: tip }">
-              <v-icon
-                v-bind="tip"
-                size="small"
-                :color="target.potionId ? 'primary' : 'default'"
-                style="opacity: 0.7; cursor: default"
-              >mdi-information-outline</v-icon>
+              <v-icon v-bind="tip" size="small" :color="target.potionId ? 'primary' : 'default'"
+                style="opacity: 0.7; cursor: default">mdi-information-outline</v-icon>
             </template>
             <span style="white-space: pre-line">{{ getRecipeTip(target.potionId) }}</span>
           </v-tooltip>
         </v-col>
+        <v-col cols="6" class="pr-1">
+          <v-autocomplete :model-value="target.potionId" :items="selectItems" item-title="title" item-value="value"
+            label="Potion" density="compact" variant="outlined" hide-details :custom-filter="filterPotions"
+            @update:model-value="v => emit('setPotion', index, String(v ?? ''))" />
+        </v-col>
         <v-col cols="4" class="pr-1">
-          <v-text-field
-            :model-value="target.qty"
-            type="number"
-            min="1"
-            label="Qty"
-            density="compact"
-            variant="outlined"
-            hide-details="auto"
-            :rules="[qtyRule]"
-            @update:model-value="v => onQty(index, v)"
-          />
+          <v-text-field :model-value="target.qty" type="number" min="1" label="Qty" density="compact" variant="outlined"
+            hide-details="auto" :rules="[qtyRule]" @update:model-value="v => onQty(index, v)" />
         </v-col>
         <v-col cols="1" class="d-flex justify-center">
-          <v-btn
-            icon="mdi-close"
-            size="x-small"
-            variant="text"
-            color="error"
-            aria-label="Remove target"
-            @click="emit('remove', index)"
-          />
+          <v-btn icon="mdi-close" size="x-small" variant="text" color="error" aria-label="Remove target"
+            @click="emit('remove', index)" />
         </v-col>
       </v-row>
     </v-card-text>
@@ -90,8 +59,8 @@ const emit = defineEmits<{
   remove: [index: number]
   setPotion: [index: number, potionId: string]
   setQty: [index: number, qty: number]
+  toggleCollapse: []
 }>()
-
 
 type SelectItem =
   | { title: string; value: string }
@@ -108,13 +77,11 @@ const selectItems = computed((): SelectItem[] => {
     return { title, value: r.id, props: { disabled: true } }
   }
 
-  // Popular: always shown, disabled if player's level is too low
   const popularEntries = POPULAR_POTION_IDS
     .map(id => RECIPE_BY_ID.get(id))
     .filter((r): r is Recipe => r !== undefined)
     .map(toEntry)
 
-  // Remaining: level-unlocked, excluding popular, sorted by levelRequired descending
   const popularSet = new Set(POPULAR_POTION_IDS)
   const remaining = available
     .filter(r => !popularSet.has(r.id))
@@ -134,7 +101,6 @@ const selectItems = computed((): SelectItem[] => {
 })
 
 function filterPotions(value: string, query: string, item?: { raw: SelectItem }): boolean {
-  // Always show group headers (they have no 'value' key)
   if (!item?.raw || !('value' in item.raw)) return true
   return value.toLowerCase().includes(query.toLowerCase())
 }

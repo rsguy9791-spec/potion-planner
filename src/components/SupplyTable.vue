@@ -1,229 +1,209 @@
 <template>
-  <v-card elevation="9">
-    <v-card-title class="d-flex align-center justify-space-between pt-4 pb-2 px-4">
-      <span>My supplies</span>
-    </v-card-title>
-    <v-card-text class="text-medium-emphasis text-body-small">
-      <span>Enter your current supplies to calculate required ingredients</span>
-    </v-card-text>
-  </v-card>
-  <v-expansion-panels v-model="openPanels" multiple variant="accordion" elevation="2">
+  <v-table density="compact" class="supply-tbl">
+    <thead v-if="rows.length > 0" class="text-medium-emphasis">
+      <tr>
+        <th class="text-left">Ingredient</th>
+        <th style="min-width:140px">Quantity</th>
+        <th class="text-right" style="width:80px">Needed</th>
+        <th class="text-right" style="width:82px">Remaining</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="row in rows" :key="row.id" :class="rowClass(row)">
+        <!-- Ingredient -->
+        <td>
+          <v-icon v-if="!row.tradeable && row.remaining > 0" icon="mdi-lock" size="x-small" class="mr-1 text-warning" />
+          <span :class="{ 'text-medium-emphasis': !row.isNeeded }">{{ row.name }}</span>
+        </td>
 
-    <!-- ── Herbs ───────────────────────────────────────────────────────────── -->
-    <v-expansion-panel value="herbs">
-      <v-expansion-panel-title>
-        <div class="d-flex align-center" style="width:100%">
-          <span>Herbs</span>
-          <v-spacer />
-          <v-btn variant="tonal" color="error" size="small" prepend-icon="mdi-refresh"
-            @click.stop="emit('resetCategory', 'herbs')">
-            Clear
-          </v-btn>
-        </div>
-      </v-expansion-panel-title>
-      <v-expansion-panel-text class="pa-2">
-        <v-row v-for="herb in HERB_ROWS" :key="herb.cleanId" align="center" no-gutters class="mb-2">
-          <v-col cols="3" class="text-body-2 pr-2" style="font-size:0.8rem">{{ herb.name }}</v-col>
-          <v-col cols="3" class="pr-1">
-            <v-text-field :model-value="getHerbClean(herb.cleanId)" type="number" min="0" label="Clean"
-              density="compact" variant="outlined" hide-details
-              @update:model-value="v => emit('setHerbClean', herb.cleanId, Math.max(0, Number(v)))" />
-          </v-col>
-          <v-col cols="3" class="pr-1">
-            <v-text-field :model-value="getHerbGrimy(herb.cleanId)" type="number" min="0" label="Grimy"
-              density="compact" variant="outlined" hide-details
-              @update:model-value="v => emit('setHerbGrimy', herb.cleanId, Math.max(0, Number(v)))" />
-          </v-col>
-          <v-col cols="3">
-            <v-text-field :model-value="getHerbUnf(herb.cleanId)" type="number" min="0" label="Unf"
-              density="compact" variant="outlined" hide-details
-              @update:model-value="v => emit('setHerbUnf', herb.cleanId, Math.max(0, Number(v)))" />
-          </v-col>
-        </v-row>
-      </v-expansion-panel-text>
-    </v-expansion-panel>
-
-    <!-- ── Secondaries ────────────────────────────────────────────────────── -->
-    <v-expansion-panel value="secondaries">
-      <v-expansion-panel-title>
-        <div class="d-flex align-center" style="width:100%">
-          <span>Secondaries</span>
-          <v-spacer />
-          <v-btn variant="tonal" color="error" size="small" prepend-icon="mdi-refresh"
-            @click.stop="emit('resetCategory', 'secondaries')">
-            Clear
-          </v-btn>
-        </div>
-      </v-expansion-panel-title>
-      <v-expansion-panel-text class="pa-2">
-        <v-row v-for="item in SECONDARY_ROWS" :key="item.id" align="center" no-gutters class="mb-2">
-          <v-col cols="8" class="text-body-2 pr-2" style="font-size:0.8rem">
-            {{ item.name }}
-          </v-col>
-          <v-col cols="4">
-            <v-text-field :model-value="getItemQty(item.id)" type="number" min="0" label="Have" density="compact"
-              variant="outlined" hide-details
-              @update:model-value="v => emit('setItemQty', item.id, Math.max(0, Number(v)))" />
-          </v-col>
-        </v-row>
-      </v-expansion-panel-text>
-    </v-expansion-panel>
-
-    <!-- ── Potions ────────────────────────────────────────────────────────── -->
-    <v-expansion-panel value="potions">
-      <v-expansion-panel-title>
-        <div class="d-flex align-center" style="width:100%">
-          <span>Potions</span>
-          <v-spacer />
-          <v-btn variant="tonal" color="error" size="small" prepend-icon="mdi-refresh"
-            @click.stop="emit('resetCategory', 'potions')">
-            Clear
-          </v-btn>
-        </div>
-      </v-expansion-panel-title>
-      <v-expansion-panel-text class="pa-2">
-
-        <template v-for="(cat, catIdx) in activePotionCategories" :key="cat">
-          <v-divider v-if="catIdx > 0" class="my-2" />
-          <div class="text-overline text-medium-emphasis mb-1">{{ CATEGORY_LABELS[cat] }}</div>
-
-          <template v-for="p in groupedPotionRows.get(cat)" :key="p.id">
-            <v-row align="center" no-gutters class="mb-2">
+        <!-- Quantity inputs -->
+        <td class="qty-cell">
+          <div class="qty-flex">
+            <template v-if="row.kind === 'herb'" v-for="h in [asHerb(row)]">
+              <v-text-field v-bind="fieldProps" :model-value="h.qtyClean" aria-label="Clean"
+                @update:model-value="v => setHerbClean(row.id, parse(v))" prepend-inner-icon="mdi-leaf" />
+              <v-text-field v-bind="fieldProps" :model-value="h.qtyGrimy" aria-label="Grimy"
+                @update:model-value="v => setHerbGrimy(row.id, parse(v))" prepend-inner-icon="mdi-liquid-spot" />
+              <v-text-field v-bind="fieldProps" :model-value="h.qtyUnf" aria-label="Unfinished"
+                @update:model-value="v => setHerbUnf(row.id, parse(v))" prepend-inner-icon="mdi-circle-half-full" />
+            </template>
+            <template v-else-if="row.kind === 'potion'" v-for="p in [asPotion(row)]">
               <template v-if="p.isFlask">
-                <v-col cols="8" class="text-body-2 pr-2" style="font-size:0.8rem">{{ p.name }}</v-col>
-                <v-col cols="4">
-                  <v-text-field :model-value="getPotionDose(p.id, 'sixDose')" type="number" min="0" label="6-dose"
-                    density="compact" variant="outlined" hide-details
-                    @update:model-value="v => emit('setPotionSixDose', p.id, Math.max(0, Number(v)))" />
-                </v-col>
+                <v-text-field v-bind="fieldProps" :model-value="p.qtySix" aria-label="6 dose"
+                  @update:model-value="v => setPotionSixDose(row.id, parse(v))" prepend-inner-icon="mdi-numeric-6" />
               </template>
               <template v-else>
-                <v-col cols="4" class="text-body-2 pr-2" style="font-size:0.8rem">{{ p.name }}</v-col>
-                <v-col cols="4" class="pr-1">
-                  <v-text-field :model-value="getPotionDose(p.id, 'threeDose')" type="number" min="0" label="3-dose"
-                    density="compact" variant="outlined" hide-details
-                    @update:model-value="v => emit('setPotionThreeDose', p.id, Math.max(0, Number(v)))" />
-                </v-col>
-                <v-col cols="4">
-                  <v-text-field :model-value="getPotionDose(p.id, 'fourDose')" type="number" min="0" label="4-dose"
-                    density="compact" variant="outlined" hide-details
-                    @update:model-value="v => emit('setPotionFourDose', p.id, Math.max(0, Number(v)))" />
-                </v-col>
+                <v-text-field v-bind="fieldProps" :model-value="p.qtyThree" aria-label="3 dose"
+                  @update:model-value="v => setPotionThreeDose(row.id, parse(v))" prepend-inner-icon="mdi-numeric-3" />
+                <v-text-field v-bind="fieldProps" :model-value="p.qtyFour" aria-label="4 dose"
+                  @update:model-value="v => setPotionFourDose(row.id, parse(v))" prepend-inner-icon="mdi-numeric-4" />
               </template>
-            </v-row>
-          </template>
-        </template>
+            </template>
+            <template v-else v-for="item in [asItem(row)]">
+              <v-text-field v-bind="fieldProps" :model-value="item.qty" aria-label="Quantity"
+                @update:model-value="v => setItemQty(row.id, parse(v))" prepend-inner-icon="mdi-pound"
+                class="qty-tf--single" />
+            </template>
+          </div>
+        </td>
 
-      </v-expansion-panel-text>
-    </v-expansion-panel>
+        <!-- Needed (scroll savings shown as tooltip when active) -->
+        <td class="text-right needed-cell">
+          <v-tooltip v-if="row.totalNeeded > 0 && row.scrollSavings > 0"
+            :text="`Without scroll: ${row.rawQty.toLocaleString()}`" location="left">
+            <template #activator="{ props: tip }">
+              <span v-bind="tip" class="tooltip-qty">
+                {{ row.totalNeeded.toLocaleString() }}
+                <v-icon icon="mdi-leaf" size="x-small" color="success" />
+              </span>
+            </template>
+          </v-tooltip>
+          <span v-else>{{ row.totalNeeded > 0 ? row.totalNeeded.toLocaleString() : '—' }}</span>
+        </td>
 
-    <!-- ── Vials & Bases ──────────────────────────────────────────────────── -->
-    <v-expansion-panel value="vials">
-      <v-expansion-panel-title>
-        <div class="d-flex align-center" style="width:100%">
-          <span>Vials &amp; Bases</span>
-          <v-spacer />
-          <v-btn variant="tonal" color="error" size="small" prepend-icon="mdi-refresh"
-            @click.stop="emit('resetCategory', 'vials')">
-            Clear
+        <!-- Remaining -->
+        <td class="text-right remaining-cell font-weight-bold">
+          {{ row.remaining > 0 ? row.remaining.toLocaleString() : '—' }}
+        </td>
+      </tr>
+
+      <!-- See more / Show less toggle -->
+      <tr v-if="hiddenCount > 0">
+        <td colspan="4" class="text-center py-1">
+          <v-btn variant="text" size="small" density="compact" @click="emit('toggleSeeMore')">
+            {{ hiddenCount }} more...
           </v-btn>
-        </div>
-      </v-expansion-panel-title>
-      <v-expansion-panel-text class="pa-2">
-        <v-row v-for="item in VIAL_ROWS" :key="item.id" align="center" no-gutters class="mb-2">
-          <v-col cols="8" class="text-body-2 pr-2" style="font-size:0.8rem">
-            {{ item.name }}
-          </v-col>
-          <v-col cols="4">
-            <v-text-field :model-value="getItemQty(item.id)" type="number" min="0" label="Have" density="compact"
-              variant="outlined" hide-details
-              @update:model-value="v => emit('setItemQty', item.id, Math.max(0, Number(v)))" />
-          </v-col>
-        </v-row>
-      </v-expansion-panel-text>
-    </v-expansion-panel>
-
-  </v-expansion-panels>
+        </td>
+      </tr>
+      <tr v-else-if="hasSeenMore">
+        <td colspan="4" class="text-center py-1">
+          <v-btn variant="text" size="small" density="compact" @click="emit('toggleSeeMore')">
+            Show less
+          </v-btn>
+        </td>
+      </tr>
+    </tbody>
+  </v-table>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { INGREDIENTS, INGREDIENT_MAP, SUPPLY_POTION_IDS, RECIPE_BY_ID } from '@/data/recipes'
-import { CATEGORY_LABELS, CATEGORY_ORDER } from '@/data/constants'
-import type { CalculatorInputs, PotionCategory } from '@/types'
+import { computed } from 'vue'
+import type { SupplyRow, HerbSupplyRow, PotionSupplyRow, ItemSupplyRow } from '@/types'
+import { useSupply } from '@/composables/useSupply'
 
 const props = defineProps<{
-  inputs: CalculatorInputs
+  rows: SupplyRow[]
+  hiddenCount: number
 }>()
 
-const emit = defineEmits<{
-  setHerbClean: [herbId: string, qty: number]
-  setHerbGrimy: [herbId: string, qty: number]
-  setHerbUnf: [herbId: string, qty: number]
-  setItemQty: [itemId: string, qty: number]
-  setPotionThreeDose: [potionId: string, qty: number]
-  setPotionFourDose: [potionId: string, qty: number]
-  setPotionSixDose: [potionId: string, qty: number]
-  resetCategory: [category: 'herbs' | 'secondaries' | 'potions' | 'vials']
-}>()
+const emit = defineEmits<{ toggleSeeMore: [] }>()
 
-// ─── Static row definitions ───────────────────────────────────────────────────
+const {
+  setHerbClean, setHerbGrimy, setHerbUnf, setItemQty,
+  setPotionThreeDose, setPotionFourDose, setPotionSixDose,
+} = useSupply()
 
-const HERB_ROWS = INGREDIENTS
-  .filter(i => i.kind === 'herb' && !i.id.startsWith('grimy_'))
-  .map(i => ({ cleanId: i.id, name: i.name }))
-  .sort((a, b) => a.name.localeCompare(b.name))
+const fieldProps = {
+  type: 'number', min: 0, density: 'default', variant: 'outlined',
+  hideDetails: true, class: 'qty-tf',
+} as const
 
-const SECONDARY_ROWS = INGREDIENTS
-  .filter(i => i.kind === 'secondary')
-  .map(i => ({ id: i.id, name: i.name }))
-  .sort((a, b) => a.name.localeCompare(b.name))
-
-const VIAL_ROWS = INGREDIENTS
-  .filter(i => i.kind === 'vial' || i.kind === 'misc')
-  .map(i => ({ id: i.id, name: i.name }))
-  .sort((a, b) => a.name.localeCompare(b.name))
-
-const ALL_POTION_ROWS = SUPPLY_POTION_IDS.map(id => {
-  const recipe = RECIPE_BY_ID.get(id)
-  return {
-    id,
-    name: recipe?.name ?? INGREDIENT_MAP.get(id)?.name ?? id,
-    isFlask: (recipe?.outputDose ?? 3) === 6,
-    category: (recipe?.category ?? 'potions') as PotionCategory,
-  }
-})
-
-const groupedPotionRows = new Map<PotionCategory, typeof ALL_POTION_ROWS>()
-for (const row of ALL_POTION_ROWS) {
-  const bucket = groupedPotionRows.get(row.category) ?? []
-  bucket.push(row)
-  groupedPotionRows.set(row.category, bucket)
+function parse(v: unknown): number {
+  return Math.max(0, Number(v) || 0)
 }
 
-const activePotionCategories = computed(() =>
-  CATEGORY_ORDER.filter(cat => (groupedPotionRows.get(cat)?.length ?? 0) > 0)
+const hasSeenMore = computed(() =>
+  props.hiddenCount === 0 && props.rows.some(r => !r.isNeeded)
 )
 
-// ─── Panel state ─────────────────────────────────────────────────────────────
+function rowClass(row: SupplyRow) {
+  if (!row.isNeeded) return 'row-not-needed'
+  if (row.remaining === 0) return 'row-ok'
+  if (!row.tradeable) return 'row-untradeable'
+  return 'row-deficit'
+}
 
-const openPanels = ref(['herbs', 'secondaries', 'potions', 'vials'])
-
-// ─── Supply readers ───────────────────────────────────────────────────────────
-
-function getHerbClean(herbId: string) {
-  return props.inputs.herbSupply.get(herbId)?.cleanQty ?? 0
-}
-function getHerbGrimy(herbId: string) {
-  return props.inputs.herbSupply.get(herbId)?.grimyQty ?? 0
-}
-function getHerbUnf(herbId: string) {
-  return props.inputs.herbSupply.get(herbId)?.unfQty ?? 0
-}
-function getItemQty(itemId: string) {
-  return props.inputs.itemSupply.get(itemId) ?? 0
-}
-function getPotionDose(potionId: string, key: 'threeDose' | 'fourDose' | 'sixDose') {
-  return props.inputs.potionSupply.get(potionId)?.[key] ?? 0
-}
+const asHerb = (row: SupplyRow) => row as HerbSupplyRow
+const asPotion = (row: SupplyRow) => row as PotionSupplyRow
+const asItem = (row: SupplyRow) => row as ItemSupplyRow
 </script>
+
+<style scoped>
+.supply-tbl :deep(.v-table__wrapper) {
+  overflow-x: auto;
+}
+
+.qty-cell {
+  padding-top: 2px !important;
+  padding-bottom: 2px !important;
+  vertical-align: middle;
+}
+
+.qty-flex {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+
+.qty-tf {
+  width: 60px;
+  flex-shrink: 0;
+  margin: 0 2px;
+}
+
+.qty-tf--single {
+  width: 72px;
+}
+
+.qty-tf :deep(.v-field--prepended) {
+  padding-inline-start: 0 !important;
+}
+
+.qty-tf :deep(.v-field__prepend-inner) {
+  padding-inline: 4px;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.06);
+  border-right: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-radius: 4px 0 0 4px;
+}
+
+.qty-tf :deep(.v-field__prepend-inner .v-icon) {
+  font-size: 1rem;
+  opacity: 0.55;
+}
+
+.qty-tf :deep(.v-field__input) {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  min-height: unset !important;
+  font-size: 0.8rem;
+}
+
+.qty-tf :deep(.v-input__control) {
+  min-height: unset !important;
+}
+
+.row-ok .remaining-cell {
+  color: rgb(var(--v-theme-success));
+}
+
+.row-deficit .remaining-cell {
+  color: rgb(var(--v-theme-error));
+}
+
+.row-untradeable .remaining-cell {
+  color: rgb(var(--v-theme-warning));
+}
+
+.row-not-needed .needed-cell,
+.row-not-needed .remaining-cell {
+  opacity: 0.35;
+}
+
+.tooltip-qty {
+  cursor: default;
+  white-space: nowrap;
+}
+</style>

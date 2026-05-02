@@ -107,39 +107,25 @@ function setTargetQty(index: number, qty: number) {
   targets[index].qty = qty
 }
 
-function setHerbClean(herbId: string, qty: number) {
-  const existing = inputs.herbSupply.get(herbId) ?? emptyHerbSupply()
-  inputs.herbSupply.set(herbId, { ...existing, cleanQty: qty })
+function patchHerb(id: string, patch: Partial<HerbSupply>) {
+  inputs.herbSupply.set(id, { ...(inputs.herbSupply.get(id) ?? emptyHerbSupply()), ...patch })
 }
 
-function setHerbGrimy(herbId: string, qty: number) {
-  const existing = inputs.herbSupply.get(herbId) ?? emptyHerbSupply()
-  inputs.herbSupply.set(herbId, { ...existing, grimyQty: qty })
+function patchPotion(id: string, patch: Partial<PotionSupply>) {
+  inputs.potionSupply.set(id, { ...(inputs.potionSupply.get(id) ?? emptyPotionSupply()), ...patch })
 }
 
-function setHerbUnf(herbId: string, qty: number) {
-  const existing = inputs.herbSupply.get(herbId) ?? emptyHerbSupply()
-  inputs.herbSupply.set(herbId, { ...existing, unfQty: qty })
-}
+function setHerbClean(id: string, qty: number) { patchHerb(id, { cleanQty: qty }) }
+function setHerbGrimy(id: string, qty: number) { patchHerb(id, { grimyQty: qty }) }
+function setHerbUnf(id: string, qty: number) { patchHerb(id, { unfQty: qty }) }
 
 function setItemQty(itemId: string, qty: number) {
   inputs.itemSupply.set(itemId, qty)
 }
 
-function setPotionThreeDose(potionId: string, qty: number) {
-  const existing = inputs.potionSupply.get(potionId) ?? emptyPotionSupply()
-  inputs.potionSupply.set(potionId, { ...existing, threeDose: qty })
-}
-
-function setPotionFourDose(potionId: string, qty: number) {
-  const existing = inputs.potionSupply.get(potionId) ?? emptyPotionSupply()
-  inputs.potionSupply.set(potionId, { ...existing, fourDose: qty })
-}
-
-function setPotionSixDose(potionId: string, qty: number) {
-  const existing = inputs.potionSupply.get(potionId) ?? emptyPotionSupply()
-  inputs.potionSupply.set(potionId, { ...existing, sixDose: qty })
-}
+function setPotionThreeDose(id: string, qty: number) { patchPotion(id, { threeDose: qty }) }
+function setPotionFourDose(id: string, qty: number) { patchPotion(id, { fourDose: qty }) }
+function setPotionSixDose(id: string, qty: number) { patchPotion(id, { sixDose: qty }) }
 
 function setSecondaryMode(id: string, mode: SecondaryMode) {
   if (mode === 'default') inputs.secondaryModes.delete(id)

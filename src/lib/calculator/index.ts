@@ -1,5 +1,4 @@
-import type { IngredientId, CalculatorInputs, IngredientResult, CalculationResult, TargetPotion, ShortfallItem } from '@/types'
-import { DEFAULT_CONFIG } from '@/types'
+import type { CalculatorInputs, CalculationResult, TargetPotion, ShortfallItem } from '@/types'
 import { RECIPE_BY_ID } from '@/data/recipes'
 import type { ResolveConfig } from './types'
 import { resolveChain, emptyResolveState, buildDosePool, buildSecondaryPool } from './resolution'
@@ -55,29 +54,3 @@ export function calculateAll(
   }
 }
 
-export function getIngredientList(
-  targetPotionId: IngredientId,
-  level: number,
-): IngredientResult[] {
-  const emptyInputs: CalculatorInputs = {
-    herbloreLevel: level,
-    herbSupply: new Map(),
-    itemSupply: new Map(),
-    potionSupply: new Map(),
-    secondaryModes: new Map(),
-    disabledRecipes: new Set(),
-    preferredRecipeTier: new Map(),
-    perks: { ...DEFAULT_CONFIG },
-  }
-  const config: ResolveConfig = {
-    level,
-    secondaryModes: new Map(),
-    disabledRecipes: new Set(),
-    preferredTier: new Map(),
-    perks: { ...DEFAULT_CONFIG },
-  }
-  const state = emptyResolveState()
-  const recipe = RECIPE_BY_ID.get(targetPotionId)
-  resolveChain(targetPotionId, recipe?.outputDose ?? 3, 1, config, state)
-  return buildResults(state.accumulator, state.dosesConsumedFromSupply, emptyInputs)
-}
