@@ -20,6 +20,11 @@
           Recipes
         </v-btn>
         <v-btn
+          variant="tonal" color="white" size="small"
+          icon="mdi-database-export" density="comfortable"
+          @click="dataOpen = true"
+        />
+        <v-btn
           variant="tonal" color="error" size="small"
           prepend-icon="mdi-refresh"
           @click="resetAll"
@@ -67,6 +72,7 @@
 
     <RecipesSidebar v-model="sidebarOpen" eager />
     <PerksSidebar v-model="perksOpen" :config="inputs.perks" @update="setConfig" />
+    <DataDialog v-model="dataOpen" />
   </v-app>
 </template>
 
@@ -78,6 +84,7 @@ import SupplyColumn from '@/components/SupplyColumn.vue'
 import CraftingSteps from '@/components/CraftingSteps.vue'
 import RecipesSidebar from '@/components/RecipesSidebar.vue'
 import PerksSidebar from '@/components/PerksSidebar.vue'
+import DataDialog from '@/components/DataDialog.vue'
 import { useCalculator } from '@/composables/useCalculator'
 
 const {
@@ -93,6 +100,7 @@ const {
   setConfig,
 } = useCalculator()
 
+const dataOpen = ref(false)
 const openPanel = ref<'sidebar' | 'perks' | null>(null)
 const sidebarOpen = computed({
   get: () => openPanel.value === 'sidebar',

@@ -47,32 +47,31 @@ function serializeState() {
   })
 }
 
+function applyState(data: any) {
+  if (data.version !== STATE_VERSION) throw new Error(`Unsupported version: ${data.version}`)
+  inputs.herbloreLevel = data.herbloreLevel ?? DEFAULT_LEVEL
+  inputs.herbSupply = new Map(
+    (data.herbSupply ?? []).map(([id, s]: [string, any]) => [
+      id, { cleanQty: s.cleanQty ?? 0, grimyQty: s.grimyQty ?? 0, unfQty: s.unfQty ?? 0 },
+    ])
+  )
+  inputs.itemSupply = new Map(data.itemSupply ?? [])
+  inputs.potionSupply = new Map(data.potionSupply ?? [])
+  inputs.secondaryModes = new Map(data.secondaryModes ?? [])
+  inputs.disabledRecipes = new Set(data.disabledRecipes ?? [])
+  inputs.preferredRecipeTier = new Map(data.preferredRecipeTier ?? [])
+  // Migrate old scrollOfCleansing boolean into config
+  inputs.perks = { ...DEFAULT_CONFIG, scrollOfCleansing: !!data.scrollOfCleansing, ...(data.config ?? {}) }
+  if (Array.isArray(data.targets) && data.targets.length > 0) {
+    targets.splice(0, targets.length, ...data.targets)
+  }
+}
+
 function loadFromStorage() {
   const saved = localStorage.getItem(STORAGE_KEY)
   if (!saved) return
   try {
-    const data = JSON.parse(saved)
-    if (data.version !== STATE_VERSION) {
-      localStorage.removeItem(STORAGE_KEY)
-      return
-    }
-    inputs.herbloreLevel = data.herbloreLevel ?? DEFAULT_LEVEL
-    inputs.herbSupply = new Map(
-      (data.herbSupply ?? []).map(([id, s]: [string, any]) => [
-        id, { cleanQty: s.cleanQty ?? 0, grimyQty: s.grimyQty ?? 0, unfQty: s.unfQty ?? 0 },
-      ])
-    )
-    inputs.itemSupply = new Map(data.itemSupply ?? [])
-    inputs.potionSupply = new Map(data.potionSupply ?? [])
-    inputs.secondaryModes = new Map(data.secondaryModes ?? [])
-    inputs.disabledRecipes = new Set(data.disabledRecipes ?? [])
-    inputs.preferredRecipeTier = new Map(data.preferredRecipeTier ?? [])
-    // Migrate old scrollOfCleansing boolean into config
-    const migratedScroll = !!data.scrollOfCleansing
-    inputs.perks = { ...DEFAULT_CONFIG, scrollOfCleansing: migratedScroll, ...(data.config ?? {}) }
-    if (Array.isArray(data.targets) && data.targets.length > 0) {
-      targets.splice(0, targets.length, ...data.targets)
-    }
+    applyState(JSON.parse(saved))
   } catch {
     localStorage.removeItem(STORAGE_KEY)
   }
@@ -185,6 +184,10 @@ const availableTargets = computed(() =>
   )
 )
 
+function importState(json: string) {
+  applyState(JSON.parse(json))
+}
+
 export function useCalculator() {
   return {
     inputs,
@@ -208,5 +211,7 @@ export function useCalculator() {
     setConfig,
     resetAll,
     resetCategory,
+    serializeState,
+    importState,
   }
 }
