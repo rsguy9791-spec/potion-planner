@@ -101,7 +101,7 @@ export function buildSteps(
 
       // XP calculation
       const baseBoostPercent = perks.clanFealtyPercent + perks.botanistXpPercent + perks.customXpPercent
-      const jujuBonus = perks.perfectJujuPotion && recipe.category === 'combination' ? 5 : 0
+      const jujuBonus = perks.perfectJujuPotion && recipe.type === 'combination' ? 5 : 0
       const boostMultiplier = 1 + (baseBoostPercent + jujuBonus) / 100
       const xpGained = recipe.xpPerCraft ? Math.round(crafts * recipe.xpPerCraft * boostMultiplier) : 0
 

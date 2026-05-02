@@ -165,7 +165,7 @@ export function resolveChain(
 
   // ── Duplicate-potion bonuses ─────────────────────────────────────────────────
   const maskExtra = cfg.modifiedBotanistMask ? 5 : 0
-  const wellExtra = cfg.portableWell ? (cfg.broochOfTheGods ? 10 : 5) : 0
+  const wellExtra = (cfg.portableWell && recipe.type !== 'combination') ? (cfg.broochOfTheGods ? 10 : 5) : 0
   const totalExtraPercent = maskExtra + wellExtra
   if (totalExtraPercent > 0) {
     craftsNeeded = Math.ceil(craftsNeeded / (1 + totalExtraPercent / 100))

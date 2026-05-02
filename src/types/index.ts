@@ -73,6 +73,8 @@ export interface Recipe {
   /** Short label shown in the tier selector when level alone doesn't distinguish variants */
   variantLabel?: string
   category: PotionCategory
+  /** Combination recipes (combining existing potions): well duplication does not apply, juju potion XP bonus does. Absent means 'standard'. */
+  type?: 'combination' | 'standard'
   /** Whether the output potion can be bought on the Grand Exchange. Defaults to true. */
   tradeable?: boolean
   /** XP gained per craft execution. 0 for unfinished-potion recipes. */

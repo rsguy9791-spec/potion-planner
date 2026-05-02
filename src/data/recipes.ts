@@ -400,7 +400,7 @@ export const RECIPES: Recipe[] = [
   // ── Combination potions ────────────────────────────────────────────────────
   {
     id: 'replenishment', name: 'Replenishment potion',
-    levelRequired: 87, outputDose: 6, category: 'combination', tradeable: false, xpPerCraft: 256.9,
+    levelRequired: 87, outputDose: 6, category: 'combination', type: 'combination', tradeable: false, xpPerCraft: 256.9,
     inputs: [
       { id: 'crystal_flask',     kind: 'vial',   qty: 1 },
       { id: 'adrenaline_potion', kind: 'potion', qty: 1, dose: 4 },
@@ -409,7 +409,7 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'wyrmfire', name: 'Wyrmfire potion',
-    levelRequired: 89, outputDose: 6, category: 'combination', tradeable: false, xpPerCraft: 275.7,
+    levelRequired: 89, outputDose: 6, category: 'combination', type: 'combination', tradeable: false, xpPerCraft: 275.7,
     inputs: [
       { id: 'crystal_flask',  kind: 'vial',   qty: 1 },
       { id: 'antifire',       kind: 'potion', qty: 1, dose: 4 },
@@ -418,7 +418,7 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'enhanced_replenishment', name: 'Enhanced replenishment potion',
-    levelRequired: 90, outputDose: 6, category: 'combination', tradeable: false, xpPerCraft: 256.9,
+    levelRequired: 90, outputDose: 6, category: 'combination', type: 'combination', tradeable: false, xpPerCraft: 256.9,
     inputs: [
       { id: 'replenishment',      kind: 'potion',    qty: 1, dose: 6 },
       { id: 'adrenaline_crystal', kind: 'secondary', qty: 1 },
@@ -426,7 +426,7 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'supreme_attack_combo', name: 'Supreme attack',
-    levelRequired: 93, outputDose: 6, category: 'combination', tradeable: false, xpPerCraft: 240,
+    levelRequired: 93, outputDose: 6, category: 'combination', type: 'combination', tradeable: false, xpPerCraft: 240,
     inputs: [
       { id: 'crystal_flask',  kind: 'vial',   qty: 1 },
       { id: 'super_attack',   kind: 'potion', qty: 1, dose: 4 },
@@ -435,7 +435,7 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'supreme_strength_combo', name: 'Supreme strength',
-    levelRequired: 93, outputDose: 6, category: 'combination', tradeable: false, xpPerCraft: 266.3,
+    levelRequired: 93, outputDose: 6, category: 'combination', type: 'combination', tradeable: false, xpPerCraft: 266.3,
     inputs: [
       { id: 'crystal_flask',    kind: 'vial',   qty: 1 },
       { id: 'super_strength',   kind: 'potion', qty: 1, dose: 4 },
@@ -444,7 +444,7 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'supreme_defence_combo', name: 'Supreme defence',
-    levelRequired: 93, outputDose: 6, category: 'combination', tradeable: false, xpPerCraft: 292.5,
+    levelRequired: 93, outputDose: 6, category: 'combination', type: 'combination', tradeable: false, xpPerCraft: 292.5,
     inputs: [
       { id: 'crystal_flask',   kind: 'vial',   qty: 1 },
       { id: 'super_defence',   kind: 'potion', qty: 1, dose: 4 },
@@ -453,7 +453,7 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'supreme_ranging_combo', name: 'Supreme ranging',
-    levelRequired: 93, outputDose: 6, category: 'combination', tradeable: false, xpPerCraft: 217.5,
+    levelRequired: 93, outputDose: 6, category: 'combination', type: 'combination', tradeable: false, xpPerCraft: 217.5,
     inputs: [
       { id: 'crystal_flask',   kind: 'vial',   qty: 1 },
       { id: 'super_ranging',   kind: 'potion', qty: 1, dose: 4 },
@@ -462,7 +462,7 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'supreme_magic_combo', name: 'Supreme magic',
-    levelRequired: 93, outputDose: 6, category: 'combination', tradeable: false, xpPerCraft: 316.9,
+    levelRequired: 93, outputDose: 6, category: 'combination', type: 'combination', tradeable: false, xpPerCraft: 316.9,
     inputs: [
       { id: 'crystal_flask', kind: 'vial',   qty: 1 },
       { id: 'super_magic',   kind: 'potion', qty: 1, dose: 4 },
@@ -471,7 +471,7 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'super_prayer_renewal', name: 'Super prayer renewal',
-    levelRequired: 96, outputDose: 6, category: 'combination', xpPerCraft: 208.2,
+    levelRequired: 96, outputDose: 6, category: 'combination', type: 'combination', xpPerCraft: 208.2,
     inputs: [
       { id: 'crystal_flask',  kind: 'vial',   qty: 1 },
       { id: 'prayer_potion',  kind: 'potion', qty: 1, dose: 4 },
@@ -480,7 +480,7 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'brightfire', name: 'Brightfire potion',
-    levelRequired: 94, outputDose: 6, category: 'combination', tradeable: false, xpPerCraft: 300,
+    levelRequired: 94, outputDose: 6, category: 'combination', type: 'combination', tradeable: false, xpPerCraft: 300,
     inputs: [
       { id: 'crystal_flask',  kind: 'vial',   qty: 1 },
       { id: 'super_antifire', kind: 'potion', qty: 1, dose: 4 },
@@ -489,7 +489,7 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'spiritual_prayer', name: 'Spiritual prayer potion',
-    levelRequired: 110, outputDose: 6, category: 'combination', tradeable: false, xpPerCraft: 850,
+    levelRequired: 110, outputDose: 6, category: 'combination', type: 'combination', tradeable: false, xpPerCraft: 850,
     inputs: [
       { id: 'crystal_flask',    kind: 'vial',   qty: 1 },
       { id: 'primal_extract',   kind: 'misc',   qty: 1 },
@@ -535,7 +535,7 @@ export const RECIPES: Recipe[] = [
   // ── Overloads ──────────────────────────────────────────────────────────────
   {
     id: 'overload', name: 'Overload',
-    levelRequired: 96, outputDose: 3, category: 'overload', tradeable: false, xpPerCraft: 1000,
+    levelRequired: 96, outputDose: 3, category: 'overload', type: 'standard', tradeable: false, xpPerCraft: 1000,
     inputs: [
       { id: 'extreme_attack',     kind: 'potion', qty: 1, dose: 3 },
       { id: 'extreme_strength',   kind: 'potion', qty: 1, dose: 3 },
@@ -548,7 +548,7 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'holy_overload', name: 'Holy overload',
-    levelRequired: 97, outputDose: 6, category: 'overload', tradeable: false, xpPerCraft: 350,
+    levelRequired: 97, outputDose: 6, category: 'overload', type: 'combination', tradeable: false, xpPerCraft: 350,
     inputs: [
       { id: 'crystal_flask',  kind: 'vial',   qty: 1 },
       { id: 'overload',       kind: 'potion', qty: 1, dose: 4 },
@@ -557,7 +557,7 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'aggroverload', name: 'Aggroverload',
-    levelRequired: 96, outputDose: 6, category: 'overload', tradeable: false, xpPerCraft: 325,
+    levelRequired: 96, outputDose: 6, category: 'overload', type: 'combination', tradeable: false, xpPerCraft: 325,
     inputs: [
       { id: 'crystal_flask',     kind: 'vial',   qty: 1 },
       { id: 'overload',          kind: 'potion', qty: 1, dose: 4 },
@@ -567,7 +567,7 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'overload_salve', name: 'Overload salve',
-    levelRequired: 97, outputDose: 6, category: 'overload', tradeable: false, xpPerCraft: 500,
+    levelRequired: 97, outputDose: 6, category: 'overload', type: 'combination', tradeable: false, xpPerCraft: 500,
     inputs: [
       { id: 'crystal_flask',    kind: 'vial',   qty: 1 },
       { id: 'overload',         kind: 'potion', qty: 1, dose: 4 },
@@ -580,7 +580,7 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'searing_overload', name: 'Searing overload',
-    levelRequired: 97, outputDose: 6, category: 'overload', tradeable: false, xpPerCraft: 350,
+    levelRequired: 97, outputDose: 6, category: 'overload', type: 'combination', tradeable: false, xpPerCraft: 350,
     inputs: [
       { id: 'crystal_flask',  kind: 'vial',   qty: 1 },
       { id: 'overload',       kind: 'potion', qty: 1, dose: 4 },
@@ -589,7 +589,7 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'holy_aggroverload', name: 'Holy aggroverload',
-    levelRequired: 98, outputDose: 6, category: 'overload', tradeable: false, xpPerCraft: 600,
+    levelRequired: 98, outputDose: 6, category: 'overload', type: 'combination', tradeable: false, xpPerCraft: 600,
     recipeGroup: 'holy_aggroverload', variantLabel: 'From overload',
     inputs: [
       { id: 'crystal_flask',     kind: 'vial',      qty: 1 },
@@ -601,7 +601,7 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'holy_aggroverload_from_aggroverload', name: 'Holy aggroverload',
-    levelRequired: 98, outputDose: 6, category: 'overload', tradeable: false, xpPerCraft: 275,
+    levelRequired: 98, outputDose: 6, category: 'overload', type: 'combination', tradeable: false, xpPerCraft: 275,
     recipeGroup: 'holy_aggroverload', variantLabel: 'From aggroverload',
     inputs: [
       { id: 'aggroverload',   kind: 'potion',    qty: 1, dose: 6 },
@@ -611,7 +611,7 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'holy_aggroverload_from_holy', name: 'Holy aggroverload',
-    levelRequired: 98, outputDose: 6, category: 'overload', tradeable: false, xpPerCraft: 250,
+    levelRequired: 98, outputDose: 6, category: 'overload', type: 'combination', tradeable: false, xpPerCraft: 250,
     recipeGroup: 'holy_aggroverload', variantLabel: 'From holy overload',
     inputs: [
       { id: 'holy_overload',     kind: 'potion',    qty: 1, dose: 6 },
@@ -621,7 +621,7 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'perfect_plus', name: 'Perfect plus potion',
-    levelRequired: 99, outputDose: 6, category: 'overload', tradeable: false, xpPerCraft: 1000,
+    levelRequired: 99, outputDose: 6, category: 'overload', type: 'combination', tradeable: false, xpPerCraft: 1000,
     inputs: [
       { id: 'crystal_flask',       kind: 'vial',      qty: 1 },
       { id: 'overload',            kind: 'potion',    qty: 1, dose: 4 },
@@ -631,7 +631,7 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'supreme_overload', name: 'Supreme overload',
-    levelRequired: 98, outputDose: 6, category: 'overload', tradeable: false, xpPerCraft: 600,
+    levelRequired: 98, outputDose: 6, category: 'overload', type: 'combination', tradeable: false, xpPerCraft: 600,
     inputs: [
       { id: 'crystal_flask',    kind: 'vial',   qty: 1 },
       { id: 'overload',         kind: 'potion', qty: 1, dose: 4 },
@@ -645,7 +645,7 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'supreme_overload_salve', name: 'Supreme overload salve',
-    levelRequired: 99, outputDose: 6, category: 'overload', tradeable: false, xpPerCraft: 700,
+    levelRequired: 99, outputDose: 6, category: 'overload', type: 'combination', tradeable: false, xpPerCraft: 700,
     inputs: [
       { id: 'crystal_flask',    kind: 'vial',   qty: 1 },
       { id: 'supreme_overload', kind: 'potion', qty: 1, dose: 6 },
@@ -658,7 +658,7 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'elder_overload', name: 'Elder overload',
-    levelRequired: 106, outputDose: 6, category: 'overload', tradeable: false, xpPerCraft: 850,
+    levelRequired: 106, outputDose: 6, category: 'overload', type: 'combination', tradeable: false, xpPerCraft: 850,
     inputs: [
       { id: 'supreme_overload', kind: 'potion', qty: 1, dose: 6 },
       { id: 'primal_extract',   kind: 'vial',   qty: 1 },
@@ -667,7 +667,7 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'elder_overload_salve', name: 'Elder overload salve',
-    levelRequired: 107, outputDose: 6, category: 'overload', tradeable: false, xpPerCraft: 750,
+    levelRequired: 107, outputDose: 6, category: 'overload', type: 'combination', tradeable: false, xpPerCraft: 750,
     recipeGroup: 'elder_overload_salve', variantLabel: 'From elder overload',
     inputs: [
       { id: 'elder_overload',   kind: 'potion', qty: 1, dose: 6 },
@@ -680,7 +680,7 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'elder_overload_salve_from_supreme_overload', name: 'Elder overload salve',
-    levelRequired: 107, outputDose: 6, category: 'overload', tradeable: false, xpPerCraft: 900,
+    levelRequired: 107, outputDose: 6, category: 'overload', type: 'combination', tradeable: false, xpPerCraft: 900,
     recipeGroup: 'elder_overload_salve', variantLabel: 'From supreme salve',
     inputs: [
       { id: 'supreme_overload_salve', kind: 'potion', qty: 1, dose: 6 },

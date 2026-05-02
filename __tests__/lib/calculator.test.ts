@@ -927,7 +927,7 @@ describe('XP calculation', () => {
     expect(boostedXp / baseXp).toBeCloseTo(1.1, 1) // 3+6+1 = 10%
   })
 
-  test('perfectJujuPotion adds 5% XP on combination steps only', () => {
+  test('perfectJujuPotion adds 5% XP on combination steps', () => {
     const comboRecipe = RECIPES.find(r => r.category === 'combination' && r.xpPerCraft > 0)
     if (!comboRecipe) return
 
